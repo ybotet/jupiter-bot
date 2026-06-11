@@ -1,0 +1,33 @@
+# Dependencias
+**/node_modules/
+
+# Build y distribución
+dist/
+build/
+out/
+
+# Logs y temporales
+logs/
+*.log
+temp/
+tmp/
+
+# Coverage de tests
+coverage/
+.nyc_output/
+
+# Archivos de entorno
+.env
+.env.local
+.env.*
+
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+
