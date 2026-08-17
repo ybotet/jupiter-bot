@@ -121,26 +121,28 @@ El contrato Anchor verificará:
 ## Diagramas de Flujo
 
 ### Flujo General del Bot
+
 ```mermaid
 graph TD
-    A[Inicio] --> B[Monitoreo de Precios]
+    A([Inicio]) --> B[Monitoreo de Precios]
     B --> C{Detecta Oportunidad?}
     C -->|Sí| D[Calcular Beneficio Neto]
+    C -->|No| B
     D --> E{Beneficio > Umbral?}
     E -->|Sí| F[Construir Jito Bundle]
-    F --> G[Enviar Bundle a Jito]
+    E -->|No| B
+    F --> G[Enviar Bundle a Jito Relay]
     G --> H{Confirmado en 3 Bloques?}
     H -->|Sí| I[Registrar Éxito]
     H -->|No| J[Reintentar con Más Fee]
     J -->|Máx. 5 intentos| K[Registrar Fallo]
     K --> L[Notificar al Usuario]
     I --> M[Actualizar Dashboard]
-    L --> B
     M --> B
-    C -->|No| B
-    E -->|No| B
+    L --> B
 ```
 
+## Diagrama de Secuencia de la Ejecución
 ```mermaid
 sequenceDiagram
     participant Bot as Bot (TypeScript)
