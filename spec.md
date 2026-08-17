@@ -69,6 +69,7 @@
   - Oportunidad perdida por latencia.
   - Transacción fallida.
   - Error crítico en RPC.
+  - Transaccion existosa.
 
 ---
 
