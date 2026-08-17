@@ -1,6 +1,6 @@
 # spec.md - Solana MEV Arbitrage Bot
 
-## 📋 Visión General
+## Visión General
 
 **Producto:** Bot de arbitraje MEV profesional para Solana que identifica y ejecuta oportunidades de arbitraje entre pools de Raydium, Orca y Meteora utilizando el SDK de Jupiter.
 
@@ -10,7 +10,7 @@
 
 ---
 
-## 🎯 Alcance del Producto
+## Alcance del Producto
 
 ### Incluye
 - Monitoreo continuo de precios en DEXs (Raydium, Orca, Meteora).
@@ -39,7 +39,7 @@
 
 ---
 
-## 📊 Requerimientos Funcionales
+## Requerimientos Funcionales
 
 ### RF-01: Monitoreo de Precios
 - **Descripción:** El sistema debe consultar precios de tokens en Raydium, Orca y Meteora cada 100-200ms.
@@ -73,7 +73,7 @@
 
 ---
 
-## 🧠 Lógica de Negocio
+## Lógica de Negocio
 
 ### Cálculo de Beneficio Neto
 Beneficio = (Cantidad_Salida * Precio_Venta) - (Cantidad_Entrada * Precio_Compra) - (Fee_Jupiter + Fee_Jito + Slippage)
@@ -91,7 +91,7 @@ El contrato Anchor verificará:
 
 ---
 
-## 🔄 Casos de Uso
+## Casos de Uso
 
 ### CU-01: Arbitraje Exitoso
 1. **Pre-condición:** Oportunidad detectada con beneficio > umbral.
@@ -118,7 +118,7 @@ El contrato Anchor verificará:
 
 ---
 
-## 📈 Diagramas de Flujo
+## Diagramas de Flujo
 
 ### Flujo General del Bot
 ```mermaid
@@ -161,7 +161,7 @@ sequenceDiagram
 
 ```
 
-## 🔒 Umbrales de Seguridad
+## Umbrales de Seguridad
 | Parámetro             | Valor por Defecto | Descripción                                          |
 | --------------------- | ----------------- | ---------------------------------------------------- |
 | Slippage Máximo       | 0.5%              | Evita pérdidas por volatilidad extrema.              |
@@ -170,7 +170,7 @@ sequenceDiagram
 | Reintentos            | 5                 | Número de intentos antes de descartar oportunidad.   |
 | Timeout de Simulación | 1s                | Si simulación excede, cancelar.                      |
 
-## 🖥️ Requerimientos No Funcionales
+## Requerimientos No Funcionales
 | Área           | Especificación                                                         |
 | -------------- | ---------------------------------------------------------------------- |
 | Rendimiento    | Latencia de detección < 200ms; ejecución < 2 bloques.                  |
@@ -179,7 +179,7 @@ sequenceDiagram
 | Escalabilidad  | Soporte para múltiples tokens y pares (configurable).                  |
 | Mantenibilidad | Código modular con pruebas unitarias (Jest) y de integración (Anchor). |
 
-## 🧪 Criterios de Aceptación
+## Criterios de Aceptación
 
 1. Cobertura de Tests: > 80% en módulos críticos (detección, cálculo, bundle).
 2. Ejecución Exitosa: Al menos 1 arbitraje real en mainnet con beneficio > 0.1 USDC en 24h.
@@ -187,7 +187,7 @@ sequenceDiagram
 4. Logs Completos: Registro detallado de cada ciclo, incluyendo simulaciones fallidas.
 5. Configuración Dinámica: Ajuste de umbrales y slippage sin reiniciar el bot.
 
-## 📅 Plan de Entregas (Roadmap)
+## Plan de Entregas (Roadmap)
 | Fase   | Hito                     | Entregable                                      |
 | :----- | :----------------------- | :---------------------------------------------- |
 | Fase 1 | Monitoreo y Detección    | Módulo de precios funcional (Jupiter).          |
@@ -196,7 +196,7 @@ sequenceDiagram
 | Fase 4 | Optimización y Seguridad | Mejora de latencia y gestión de claves.         |
 | Fase 5 | Producción y Monitoreo   | Despliegue en mainnet con alertas.              |
 
-## 🧩 Dependencias y Riesgos
+## Dependencias y Riesgos
 Dependencias Externas
 - Jupiter SDK: Cambios de API pueden afectar el cálculo de rutas.
 - Jito Network: Disponibilidad y fees dinámicos.
@@ -210,7 +210,7 @@ Dependencias Externas
 | Slippage extremo  | Medio                         | Ajuste dinámico según volatilidad.     |
 | Error en contrato | Crítico                       | Pruebas exhaustivas en devnet/testnet. |
 
-📝 Notas Finales
+Notas Finales
 
 - Este spec es un documento vivo; se actualizará según el feedback de pruebas y producción.
 - Priorizar siempre la seguridad de los fondos sobre la velocidad de ejecución.
