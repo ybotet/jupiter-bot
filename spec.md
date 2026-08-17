@@ -139,8 +139,9 @@ graph TD
     M --> B
     C -->|No| B
     E -->|No| B
+```
 
-
+```mermaid
 sequenceDiagram
     participant Bot as Bot (TypeScript)
     participant RPC as RPC (Solana)
