@@ -43,8 +43,8 @@ flowchart TB
     MON -->|HTTP| JUP
     MON -->|WebSocket| WS
     MON -->|RPC| RPC1
-    MON -->|RPC (fallback)| RPC2
-    MON -->|RPC (fallback)| RPC3
+    MON --> RPC2
+    MON --> RPC3
     DET -->|Read| MON
     ORC -->|Fetches routes| JUP
     ORC -->|Sends Bundle| JITO
