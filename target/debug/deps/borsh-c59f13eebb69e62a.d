@@ -1,0 +1,11 @@
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\borsh-c59f13eebb69e62a.d: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\de\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\de\hint.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\schema.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\schema_helpers.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\ser\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\ser\helpers.rs
+
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\libborsh-c59f13eebb69e62a.rmeta: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\de\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\de\hint.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\schema.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\schema_helpers.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\ser\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\ser\helpers.rs
+
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\lib.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\de\mod.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\de\hint.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\schema.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\schema_helpers.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\ser\mod.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\borsh-0.10.4\src\ser\helpers.rs:

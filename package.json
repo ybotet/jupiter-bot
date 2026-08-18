@@ -1,20 +1,42 @@
 {
-  "type": "commonjs",
   "name": "jupiter-bot",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Solana MEV arbitrage bot",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc --project tsconfig.json",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"**/*.{ts,js,cjs,mjs,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,cjs,mjs,json}\"",
+    "test": "echo \"No tests configured yet\" && exit 0"
   },
-  "keywords": [],
+  "keywords": [
+    "solana",
+    "mev",
+    "arbitrage",
+    "typescript"
+  ],
   "author": "ybotet21",
   "license": "ISC",
+  "private": true,
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@jup-ag/api": "^6.0.48",
     "@solana/web3.js": "^1.98.4",
     "bs58": "^6.0.0",
+    "decimal.js": "^10.6.0",
     "dotenv": "^17.4.2",
-    "node-fetch": "^2.7.0"
+    "jito-ts": "^4.2.1",
+    "node-fetch": "^2.7.0",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
   }
 }

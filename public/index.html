@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jupiter Bot Monitor</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #121a2d;
+        --panel-2: #1a2642;
+        --text: #edf2ff;
+        --muted: #9aa8c7;
+        --accent: #4cc9f0;
+        --accent-2: #7ae582;
+        --danger: #ff5d73;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(180deg, var(--bg), #0f172a);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 980px;
+        margin: 40px auto;
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin-bottom: 28px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        background: rgba(18, 26, 45, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .value {
+        font-size: 2rem;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      .value.small {
+        font-size: 1.4rem;
+      }
+
+      .status {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        background: rgba(122, 229, 130, 0.12);
+        color: var(--accent-2);
+      }
+
+      .table-wrap {
+        margin-top: 30px;
+        background: rgba(18, 26, 45, 0.96);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+      }
+
+      th {
+        background: var(--panel-2);
+        color: var(--muted);
+      }
+
+      td {
+        color: var(--text);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Jupiter Bot Monitor</h1>
+      <div class="subtitle">Monitoreo de precios SOL/USDC y SOL/USDT</div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="label">SOL / USDC</div>
+          <div id="sol-usdc-price" class="value small">--</div>
+          <div class="status">Live</div>
+        </div>
+
+        <div class="card">
+          <div class="label">SOL / USDT</div>
+          <div id="sol-usdt-price" class="value small">--</div>
+          <div class="status">Live</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Última actualización</div>
+          <div id="last-updated" class="value small">--</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Par</th>
+              <th>Precio</th>
+              <th>Timestamp</th>
+              <th>Fuente</th>
+            </tr>
+          </thead>
+          <tbody id="price-table-body">
+            <tr>
+              <td colspan="4">Cargando precios...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      async function loadPrices() {
+        const res = await fetch('/api/prices');
+        const data = await res.json();
+
+        const solUsdc = data['SOL/USDC'];
+        const solUsdt = data['SOL/USDT'];
+
+        if (solUsdc) {
+          document.getElementById('sol-usdc-price').textContent = `${solUsdc.price.toFixed(2)} USD`;
+        }
+
+        if (solUsdt) {
+          document.getElementById('sol-usdt-price').textContent = `${solUsdt.price.toFixed(2)} USD`;
+        }
+
+        const updated = solUsdc?.timestamp || solUsdt?.timestamp || Date.now();
+        document.getElementById('last-updated').textContent = new Date(
+          updated,
+        ).toLocaleTimeString();
+
+        const rows = [
+          solUsdc
+            ? {
+                pair: solUsdc.pair,
+                price: solUsdc.price,
+                timestamp: solUsdc.timestamp,
+                dex: solUsdc.dex,
+              }
+            : null,
+          solUsdt
+            ? {
+                pair: solUsdt.pair,
+                price: solUsdt.price,
+                timestamp: solUsdt.timestamp,
+                dex: solUsdt.dex,
+              }
+            : null,
+        ].filter(Boolean);
+
+        const tbody = document.getElementById('price-table-body');
+        tbody.innerHTML = rows.length
+          ? rows
+              .map(
+                (row) => `
+              <tr>
+                <td>${row.pair}</td>
+                <td>${Number(row.price).toFixed(2)}</td>
+                <td>${new Date(row.timestamp).toLocaleTimeString()}</td>
+                <td>${row.dex}</td>
+              </tr>
+            `,
+              )
+              .join('')
+          : '<tr><td colspan="4">Sin datos disponibles</td></tr>';
+      }
+
+      loadPrices();
+      setInterval(loadPrices, 1200);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+[features]
+seeds = false
+
+[programs.localnet]
+mev_executor = "programs/mev_executor"
+
+[registry]
+url = "https://github.com/coral-xyz/anchor"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "anchor test"

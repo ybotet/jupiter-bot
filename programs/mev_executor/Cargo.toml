@@ -1,0 +1,16 @@
+[package]
+name = "mev_executor"
+version = "0.1.0"
+description = "MEV arbitrage executor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[features]
+default = []
+no-entrypoint = []
+anchor-debug = ["anchor-lang/anchor-debug"]
+
+[dependencies]
+anchor-lang = "0.32.1"

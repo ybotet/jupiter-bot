@@ -1,0 +1,14 @@
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\serde-e761799e20c1bffa.d: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\integer128.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\de.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\ser.rs C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\build\serde-774097fa1c790350\out/private.rs
+
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\libserde-e761799e20c1bffa.rlib: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\integer128.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\de.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\ser.rs C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\build\serde-774097fa1c790350\out/private.rs
+
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\libserde-e761799e20c1bffa.rmeta: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\integer128.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\mod.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\de.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\ser.rs C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\build\serde-774097fa1c790350\out/private.rs
+
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\lib.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\integer128.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\mod.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\de.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.229\src\private\ser.rs:
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\build\serde-774097fa1c790350\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\ybotet\\Documentos\\Programación\\jupiter-bot\\target\\debug\\build\\serde-774097fa1c790350\\out
