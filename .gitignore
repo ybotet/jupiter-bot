@@ -20,7 +20,7 @@ coverage/
 .env
 .env.local
 .env.*
-
+.txt
 
 # Archivos del sistema
 .DS_Store

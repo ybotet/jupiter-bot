@@ -1,0 +1,95 @@
+Prompt Sugerido para tu Agente de IA
+[1. Rol] Actúa como un Arquitecto de Software Senior y Experto en Web3 (Solana), con especialización en estrategias MEV (Maximum Extractable Value) y optimización de sistemas de baja latencia.
+[2. Contexto] Estamos construyendo un bot de arbitraje MEV profesional para Solana. La arquitectura se divide en dos partes críticas:
+
+    Cerebro (Off-chain): Desarrollado en Node.js/TypeScript para el monitoreo de precios (Jupiter SDK) y orquestación de Jito Bundles.
+    Ejecutor (On-chain): Un smart contract en Rust utilizando el framework Anchor para garantizar la atomicidad de las operaciones de compra y venta en un solo bloque. [Análisis previo en la conversación]
+
+[3. Tarea Exacta] Genera un archivo AGENT.md exhaustivo siguiendo el estándar de agents.md. Este archivo servirá como tu "fichero de reglas de oro" y prompt de sistema persistente para este proyecto.
+[4. Restricciones y Reglas] El documento debe incluir los siguientes apartados obligatorios:
+
+    Stack Tecnológico: Especificar Node.js (TS) para lógica y Anchor (Rust) solo para el contrato de ejecución.
+    Reglas de Oro:
+        Prohibido generar lógica de monitoreo en Rust.
+        Prohibido subir llaves privadas o secretos al código (usar variables de entorno).
+        Priorizar siempre el uso de Jito Bundles para evitar transacciones fallidas.
+    Patrones de Arquitectura: Uso de web3.js para la conexión con RPCs de baja latencia y manejo estricto de errores de red (reintentos con diferentes endpoints).
+    Convenciones de Código: Tipado estricto en TypeScript para evitar errores en cálculos financieros.
+    Límite de Eficiencia: Mantén el archivo resultante por debajo de las 500 líneas para no saturar tu ventana de contexto.
+
+[5. Formato de Salida] Devuélveme exclusivamente el contenido del archivo en un bloque de código Markdown listo para ser copiado.
+
+------------------------------------------------------------------------
+
+Prompt Sugerido para generar el spec.md
+[1. Rol] Actúa como un Product Owner y Arquitecto de Sistemas Web3 experto en estrategias MEV en Solana.
+[2. Contexto] Ya tenemos definido el AGENT.md que establece nuestro stack (Node.js/TypeScript para el monitor y Rust/Anchor para la ejecución atómica). Ahora necesitamos definir el spec.md para un bot de arbitraje que busque oportunidades entre pools de Raydium, Orca y Meteora usando el SDK de Jupiter. [Conversación previa].
+[3. Tarea Exacta] Genera un archivo spec.md exhaustivo siguiendo la metodología Spec-First. El documento debe cubrir:
+
+    Requerimientos Funcionales: Monitoreo de mempool, cálculo de rutas de arbitraje y ejecución vía Jito Bundles.
+    Lógica de Negocio: Algoritmo para calcular el beneficio neto real (restando prioritization fees, Jito tips y slippage).
+    Casos de Uso: Qué sucede cuando una transacción falla o cuando el beneficio desaparece antes de la ejecución.
+    Diagramas de Flujo: (Solicita que los describa o los cree en formato Mermaid)..
+
+[4. Restricciones y Reglas]
+
+    El diseño debe priorizar la baja latencia.
+    Define umbrales de seguridad para evitar transacciones con pérdidas.
+    Asegura que el contrato on-chain (Rust) solo ejecute si se cumple la condición de arbitraje positivo (comprobar saldos antes y después). [Conversación previa].
+
+[5. Formato de Salida] Devuélveme el contenido en un bloque de código Markdown estructurado, listo para ser guardado como spec.md en la raíz del proyecto.
+
+-----------------------------------------------------------------------------
+
+
+Fase de Diseño: Generación del ARCHITECTURE.md
+El objetivo es definir la estructura técnica de alto nivel antes de tocar el código.
+
+    [1. Rol] Actúa como un Arquitecto de Sistemas Cloud y Especialista en Infraestructura Web3 (Solana).
+    [2. Contexto] Ya tenemos el AGENT.md (reglas) y el spec.md (intención). El proyecto es un bot de arbitraje MEV que separa el monitoreo (Node.js/TS) de la ejecución atómica (Rust/Anchor) [Conversación previa].
+    [3. Tarea Exacta] Genera un archivo ARCHITECTURE.md que describa la infraestructura técnica. Debe incluir diagramas en formato Mermaid que muestren la comunicación entre el motor off-chain, la RPC de Solana y el programa on-chain.
+    [4. Restricciones] Prioriza la baja latencia. El diagrama debe reflejar claramente el uso de Jito Bundles para evitar transacciones fallidas. Asegura que la separación de responsabilidades sea total entre lenguajes.
+    [5. Formato] Devuélveme el contenido en Markdown listo para guardar en la raíz del proyecto.
+------------------------------------------------------------------------------------
+
+
+Fase de Planificación: Task Planner
+Esta fase transforma la arquitectura en unidades de trabajo pequeñas para evitar la "amnesia" del modelo.
+
+    [1. Rol] Actúa como un Technical Project Manager (TPM) experto en metodologías agénticas.
+    [2. Contexto] Basándote en el @spec.md y el @ARCHITECTURE.md, necesitamos desglosar la implementación del bot de arbitraje.
+    [3. Tarea Exacta] Crea una lista de tareas técnica y secuencial. Divide el proyecto en módulos: Configuración de entorno, Monitor de Mempool, Motor de cálculo de beneficios, Contrato Anchor y Suite de Tests.
+    [4. Restricciones] Las tareas deben ser lo suficientemente pequeñas para que un agente las ejecute sin perder contexto (máximo 1 o 2 archivos por tarea). Cada tarea debe incluir un criterio de aceptación técnico.
+    [5. Formato] Una lista numerada en Markdown dentro de un apartado llamado "Plan de Implementación".
+-------------------------------------------------------------------------------------------------------
+
+Fase de Implementación: Implementer
+Este prompt lo usarás para cada tarea individual de tu lista. Es el momento donde "Jarvis" ejecuta.
+
+    [1. Rol] Actúa como un Senior Software Engineer experto en el stack definido (Node.js/TS o Rust/Anchor).
+    [2. Contexto] Estamos en la Fase de Implementación. Lee el @AGENT.md, @spec.md y @ARCHITECTURE.md.
+    [3. Tarea Exacta] Implementa la Tarea #[Número de Tarea]: [Nombre de la Tarea]. Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile.
+    [4. Restricciones] Prohibido subir llaves privadas (usa .env). Sigue estrictamente los patrones de diseño del archivo de arquitectura. No generes código que no sea necesario para esta tarea específica.
+    [5. Formato] Aplica los cambios directamente en los archivos (si usas Cursor/Claude Code) o devuélveme los bloques de código indicando la ruta del archivo.
+
+---------------------------------------------------------------------------------------------------------.
+
+Fase de Verificación: Verifier
+Para asegurar que la IA no ha construido sobre "arena" y que el bot es seguro.
+
+    [1. Rol] Actúa como un QA Engineer y Auditor de Seguridad Web3.
+    [2. Contexto] Acabamos de implementar una nueva funcionalidad. Necesito verificar que cumple con los requerimientos.
+    [3. Tarea Exacta] Revisa el código generado. Ejecuta (o pide que ejecute) los tests correspondientes. Valida que la lógica de beneficio neto (Net Profit) descuenta correctamente las fees y el slippage.
+    [4. Restricciones] Si encuentras una vulnerabilidad o un fallo en los tests, no lo ignores; detén el proceso y propón la corrección.
+    [5. Formato] Un reporte corto con "Checklist de Verificación" (Pasado/Fallido).
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Fase de Cierre: Archiver (Engram)
+Para consolidar lo aprendido y evitar que la IA "olvide" decisiones previas en la próxima sesión.
+
+    [1. Rol] Actúa como Technical Lead.
+    [2. Contexto] Hemos finalizado con éxito la implementación de un módulo.
+    [3. Tarea Exacta] Genera un resumen de memoria técnica siguiendo el formato: Qué se hizo, Por qué se hizo de esa forma, Dónde están los cambios y qué hemos Aprendido (ej. errores de red en Solana detectados).
+    [4. Restricciones] Sé breve y directo. Evita explicaciones genéricas.
+    [5. Formato] Un bloque Markdown para añadir a nuestro registro de memoria persistente.
