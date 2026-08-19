@@ -1,5 +1,7 @@
 import { createJupiterApiClient, type QuoteResponse } from '@jup-ag/api';
 
+import { PriceCache } from './priceCache';
+
 export const SOL_MINT = 'So11111111111111111111111111111111111111112';
 export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 export const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
@@ -21,6 +23,7 @@ export class PriceFetcher {
   private readonly client = createJupiterApiClient();
   private readonly intervalMs: number;
   private readonly latestPrices = new Map<MarketPair, PriceSnapshot>();
+  private readonly quoteCache = new PriceCache<PriceSnapshot>(200);
   private timer: NodeJS.Timeout | undefined;
 
   constructor(intervalMs = 200) {
@@ -48,6 +51,11 @@ export class PriceFetcher {
   }
 
   public async fetchPrice(pair: MarketPair): Promise<PriceSnapshot> {
+    const cached = this.quoteCache.get(pair);
+    if (cached) {
+      return cached;
+    }
+
     const { inputMint, outputMint } = this.getPairConfig(pair);
     const inputAmount = 1_000_000_000;
 
@@ -60,16 +68,24 @@ export class PriceFetcher {
         swapMode: 'ExactIn',
       });
 
-      return this.toSnapshot(pair, quote, inputAmount);
+      const snapshot = this.toSnapshot(pair, quote, inputAmount);
+      this.quoteCache.set(pair, snapshot);
+      this.latestPrices.set(pair, snapshot);
+
+      return snapshot;
     } catch (error) {
       const fallback = this.latestPrices.get(pair) ?? this.createFallbackSnapshot(pair);
       const previousPrice = fallback.price > 0 ? fallback.price : 0;
-
-      return {
+      const cachedFallback: PriceSnapshot = {
         ...fallback,
         timestamp: Date.now(),
         price: previousPrice,
       };
+
+      this.quoteCache.set(pair, cachedFallback);
+      this.latestPrices.set(pair, cachedFallback);
+
+      return cachedFallback;
     }
   }
 
