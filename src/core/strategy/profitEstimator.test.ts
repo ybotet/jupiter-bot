@@ -27,3 +27,40 @@ test('estimateNetProfit preserves decimal precision', () => {
 
   assert.equal(result.netProfit, '0.1');
 });
+
+/** Comprueba que una combinación de costes puede producir beneficio negativo. */
+test('estimateNetProfit returns a negative result when costs exceed revenue', () => {
+  const result = estimateNetProfit({
+    grossRevenue: '1',
+    jupiterFees: '0.8',
+    jitoTip: '0.3',
+    slippageBps: 0,
+  });
+
+  assert.equal(result.netProfit, '-0.1');
+});
+
+/** Comprueba que el estimador rechaza importes y slippage fuera de rango. */
+test('estimateNetProfit rejects invalid financial inputs', () => {
+  assert.throws(
+    () =>
+      estimateNetProfit({
+        grossRevenue: '100',
+        jupiterFees: '-0.1',
+        jitoTip: '0',
+        slippageBps: 50,
+      }),
+    /jupiterFees debe ser/,
+  );
+
+  assert.throws(
+    () =>
+      estimateNetProfit({
+        grossRevenue: '100',
+        jupiterFees: '0.1',
+        jitoTip: '0',
+        slippageBps: 10_001,
+      }),
+    /slippageBps debe estar/,
+  );
+});
