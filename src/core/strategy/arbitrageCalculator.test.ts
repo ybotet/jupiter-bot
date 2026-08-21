@@ -50,6 +50,7 @@ function createMockClient(outputs: string[]): {
 /** Comprueba que una ruta de dos pasos encadena la salida con la siguiente entrada. */
 test('ArbitrageCalculator evaluates a two-step route', async () => {
   const route: ArbitrageRoute = {
+    profitDecimals: 9,
     steps: [
       { inputMint: SOL, outputMint: USDC },
       { inputMint: USDC, outputMint: SOL },
@@ -63,6 +64,7 @@ test('ArbitrageCalculator evaluates a two-step route', async () => {
   assert.equal(result.quotes.length, 2);
   assert.equal(result.inputAmount, '1000000000');
   assert.equal(result.finalAmount, '1100000000');
+  assert.equal(result.grossProfit, '0.1');
   assert.equal(requests[0].amount, 1000000000);
   assert.equal(requests[1].amount, 2000000000);
   assert.equal(requests[1].slippageBps, 75);
@@ -71,6 +73,7 @@ test('ArbitrageCalculator evaluates a two-step route', async () => {
 /** Comprueba que una ruta de tres pasos encadena correctamente las tres cotizaciones. */
 test('ArbitrageCalculator evaluates a three-step route', async () => {
   const route: ArbitrageRoute = {
+    profitDecimals: 9,
     steps: [
       { inputMint: SOL, outputMint: USDC },
       { inputMint: USDC, outputMint: USDT },
@@ -91,6 +94,7 @@ test('ArbitrageCalculator rejects routes with an invalid step count', async () =
   const { client } = createMockClient([]);
   const calculator = new ArbitrageCalculator(client);
   const route: ArbitrageRoute = {
+    profitDecimals: 9,
     steps: [{ inputMint: SOL, outputMint: USDC }],
   };
 
@@ -102,6 +106,7 @@ test('ArbitrageCalculator rejects disconnected routes', async () => {
   const { client } = createMockClient([]);
   const calculator = new ArbitrageCalculator(client);
   const route: ArbitrageRoute = {
+    profitDecimals: 9,
     steps: [
       { inputMint: SOL, outputMint: USDC },
       { inputMint: USDT, outputMint: SOL },

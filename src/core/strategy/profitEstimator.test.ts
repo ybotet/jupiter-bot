@@ -40,6 +40,19 @@ test('estimateNetProfit returns a negative result when costs exceed revenue', ()
   assert.equal(result.netProfit, '-0.1');
 });
 
+/** Comprueba que un slippage extremo reduce completamente el ingreso bruto. */
+test('estimateNetProfit handles maximum slippage', () => {
+  const result = estimateNetProfit({
+    grossRevenue: '100',
+    jupiterFees: '0',
+    jitoTip: '0',
+    slippageBps: 10_000,
+  });
+
+  assert.equal(result.slippageCost, '100');
+  assert.equal(result.netProfit, '0');
+});
+
 /** Comprueba que el estimador rechaza importes y slippage fuera de rango. */
 test('estimateNetProfit rejects invalid financial inputs', () => {
   assert.throws(

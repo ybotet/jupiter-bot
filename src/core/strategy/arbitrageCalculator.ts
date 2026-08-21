@@ -1,4 +1,5 @@
 import { createJupiterApiClient, type QuoteGetRequest, type QuoteResponse } from '@jup-ag/api';
+import Decimal from 'decimal.js';
 
 export interface ArbitrageStep {
   inputMint: string;
@@ -7,6 +8,8 @@ export interface ArbitrageStep {
 
 export interface ArbitrageRoute {
   steps: ArbitrageStep[];
+  /** Decimales del activo inicial y final del ciclo de arbitraje. */
+  profitDecimals: number;
 }
 
 export interface JupiterRouteClient {
@@ -18,6 +21,8 @@ export interface EvaluatedArbitrageRoute {
   quotes: QuoteResponse[];
   inputAmount: string;
   finalAmount: string;
+  /** Beneficio bruto normalizado a unidades del activo inicial. */
+  grossProfit: string;
 }
 
 /** Calcula cotizaciones encadenadas de Jupiter para rutas de arbitraje de 2 o 3 pasos. */
@@ -63,6 +68,9 @@ export class ArbitrageCalculator {
       quotes,
       inputAmount: normalizedInput,
       finalAmount: currentAmount,
+      grossProfit: this.toDecimalAmount(currentAmount, route.profitDecimals)
+        .sub(this.toDecimalAmount(normalizedInput, route.profitDecimals))
+        .toFixed(),
     };
   }
 
@@ -76,6 +84,10 @@ export class ArbitrageCalculator {
 
   /** Valida que la ruta represente exactamente dos o tres swaps encadenados. */
   private validateRoute(route: ArbitrageRoute): void {
+    if (!Number.isInteger(route.profitDecimals) || route.profitDecimals < 0) {
+      throw new Error('La ruta debe declarar decimales de beneficio válidos');
+    }
+
     if (route.steps.length !== 2 && route.steps.length !== 3) {
       throw new Error('La ruta de arbitraje debe tener 2 o 3 pasos');
     }
@@ -88,6 +100,11 @@ export class ArbitrageCalculator {
         throw new Error('Los pasos de la ruta no están encadenados por sus mints');
       }
     }
+  }
+
+  /** Convierte un importe bruto a unidades decimales sin perder precisión. */
+  private toDecimalAmount(amount: string, decimals: number): Decimal {
+    return new Decimal(amount).div(new Decimal(10).pow(decimals));
   }
 
   /** Normaliza un importe bruto y evita valores negativos o no enteros. */
