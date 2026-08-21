@@ -1,0 +1,13 @@
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\aes-1d6f3b79c40de1d6.d: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\soft.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\soft\fixslice64.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\autodetect.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\utils.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes128.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes192.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes256.rs
+
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\libaes-1d6f3b79c40de1d6.rmeta: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\soft.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\soft\fixslice64.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\autodetect.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\utils.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes128.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes192.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes256.rs
+
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\lib.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\soft.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\soft\fixslice64.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\autodetect.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\utils.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes128.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes192.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\aes-0.8.4\src\ni\aes256.rs:

@@ -3,6 +3,7 @@
 
 # Build y distribución
 dist/
+dist-tests/
 build/
 out/
 

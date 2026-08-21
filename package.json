@@ -31,6 +31,7 @@
     "pino": "^10.3.1"
   },
   "devDependencies": {
+    "@solana/spl-token": "^0.4.15",
     "@types/node": "^26.2.0",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.67.0",

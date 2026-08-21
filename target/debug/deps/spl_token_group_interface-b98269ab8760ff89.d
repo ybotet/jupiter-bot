@@ -1,0 +1,8 @@
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\spl_token_group_interface-b98269ab8760ff89.d: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\error.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\instruction.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\state.rs
+
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\libspl_token_group_interface-b98269ab8760ff89.rmeta: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\error.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\instruction.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\state.rs
+
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\lib.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\error.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\instruction.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-token-group-interface-0.6.0\src\state.rs:

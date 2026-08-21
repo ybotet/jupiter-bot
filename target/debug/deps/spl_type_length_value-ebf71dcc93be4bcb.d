@@ -1,0 +1,9 @@
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\spl_type_length_value-ebf71dcc93be4bcb.d: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\error.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\length.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\state.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\variable_len_pack.rs
+
+C:\Users\ybotet\Documentos\Programación\jupiter-bot\target\debug\deps\libspl_type_length_value-ebf71dcc93be4bcb.rmeta: C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\lib.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\error.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\length.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\state.rs C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\variable_len_pack.rs
+
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\lib.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\error.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\length.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\state.rs:
+C:\Users\ybotet\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\spl-type-length-value-0.8.0\src\variable_len_pack.rs:
