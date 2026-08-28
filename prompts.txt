@@ -67,8 +67,8 @@ Fase de Implementación: Implementer
 Este prompt lo usarás para cada tarea individual de tu lista. Es el momento donde "Jarvis" ejecuta.
 
     [1. Rol] Actúa como un Senior Software Engineer experto en el stack definido (Node.js/TS o Rust/Anchor).
-    [2. Contexto] Estamos en la Fase de Implementación. Lee el @AGENT.md, @spec.md y @ARCHITECTURE.md.
-    [3. Tarea Exacta] Implementa la Tarea #[Número de Tarea]: [Nombre de la Tarea]. Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile.
+    [2. Contexto] Estamos en la Fase de Implementación. Lee el @AGENT.md, @spec.md, @ARCHITECTURE.md y @/memory.md 
+    [3. Tarea Exacta] Implementa la Tarea #[Número de Tarea]: [Nombre de la Tarea]. Realiza las ediciones multi-archivo necesarias y asegúrate de que el código compile. Genera para cada función comentarios en español, para tener claro lo que realiza.
     [4. Restricciones] Prohibido subir llaves privadas (usa .env). Sigue estrictamente los patrones de diseño del archivo de arquitectura. No generes código que no sea necesario para esta tarea específica.
     [5. Formato] Aplica los cambios directamente en los archivos (si usas Cursor/Claude Code) o devuélveme los bloques de código indicando la ruta del archivo.
 

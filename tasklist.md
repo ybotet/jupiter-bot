@@ -72,11 +72,11 @@ Este plan desglosa la construcción del bot en **10 módulos secuenciales**, pri
 
 | ID  | Tarea                                                                                                              | Archivos Involucrados                | Criterio de Aceptación                                                               |
 | --- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------ |
-| 4.1 | Crear `BundleBuilder` que construya instrucciones firmadas para el contrato Anchor.                                | `src/core/executor/bundleBuilder.ts` | Genera un bundle con las instrucciones de compra y venta correctamente secuenciadas. |
-| 4.2 | Integrar `Jito` SDK para enviar bundles al relay y manejar confirmaciones.                                         | `src/core/executor/jitoExecutor.ts`  | Envía bundles y recibe confirmación en < 3 bloques.                                  |
-| 4.3 | Implementar lógica de reintentos: si el bundle no se confirma en 3 bloques, reenviar con mayor `computeUnitPrice`. | `src/core/executor/retryHandler.ts`  | Reintenta hasta 5 veces con backoff exponencial.                                     |
-| 4.4 | Gestionar claves privadas: cargar desde `.env` y firmar sin exponer en logs.                                       | `src/utils/secrets.ts`               | Las claves nunca aparecen en logs o mensajes de error.                               |
-| 4.5 | Escribir pruebas de integración con un RPC de devnet y Jito simulado.                                              | `tests/jitoExecutor.test.ts`         | Simula el envío y confirmación de un bundle exitoso.                                 |
+| ✅ 4.1 | Crear `BundleBuilder` que construya instrucciones firmadas para el contrato Anchor.                                | `src/core/executor/bundleBuilder.ts` | Genera un bundle con las instrucciones de compra y venta correctamente secuenciadas. |
+| ✅ 4.2 | Integrar `Jito` SDK para enviar bundles al relay y manejar confirmaciones.                                         | `src/core/executor/jitoExecutor.ts`  | Envía bundles y recibe confirmación en < 3 bloques.                                  |
+| ✅ 4.3 | Implementar lógica de reintentos: si el bundle no se confirma en 3 bloques, reenviar con mayor `computeUnitPrice`. | `src/core/executor/retryHandler.ts`  | Reintenta hasta 5 veces con backoff exponencial.                                     |
+| ✅ 4.4 | Gestionar claves privadas: cargar desde `.env` y firmar sin exponer en logs.                                       | `src/utils/secrets.ts`               | Las claves nunca aparecen en logs o mensajes de error.                               |
+| ✅ 4.5 | Escribir pruebas de integración con un RPC de devnet y Jito simulado.                                              | `tests/integration/*.ts`             | Simula el envío y confirmación de un bundle exitoso.                                 |
 
 ---
 
