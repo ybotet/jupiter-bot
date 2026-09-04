@@ -15,6 +15,7 @@ import {
   toAnchorSwapInstruction,
   type ArbitrageBundleRequest,
 } from '../../contracts/anchor/mevExecutor';
+import { createSilentLogger, type Logger } from '../../utils/logger';
 import { loadKeypair, loadKeypairFromEnv, PRIVATE_KEY_ENV } from '../../utils/secrets';
 
 export interface BlockhashProvider {
@@ -29,6 +30,8 @@ export interface BundleBuilderOptions {
   payer?: Keypair;
   privateKey?: string;
   programId: PublicKey;
+  /** Logger opcional; si no se inyecta se usa uno silencioso para no acoplar al transporte. */
+  logger?: Logger;
 }
 
 export interface SignedBundle {
@@ -45,6 +48,7 @@ export class BundleBuilder {
   private readonly payer: Keypair;
   private readonly programId: PublicKey;
   private readonly instructionCoder = new BorshInstructionCoder(MEV_EXECUTOR_IDL);
+  private readonly logger: Logger;
 
   /** Crea el builder usando una cartera inyectada o la clave privada del entorno. */
   constructor(options: BundleBuilderOptions) {
@@ -53,6 +57,7 @@ export class BundleBuilder {
       options.payer ??
       (options.privateKey ? loadKeypair(options.privateKey) : loadKeypairFromEnv(PRIVATE_KEY_ENV));
     this.programId = options.programId;
+    this.logger = options.logger ?? createSilentLogger();
   }
 
   /**
@@ -120,6 +125,14 @@ export class BundleBuilder {
       transaction.sign([this.payer]);
       return transaction;
     });
+
+    this.logger.debug(
+      {
+        transactionsCount: transactions.length,
+        lastValidBlockHeight,
+      },
+      'bundle:signed',
+    );
 
     return {
       transactions,

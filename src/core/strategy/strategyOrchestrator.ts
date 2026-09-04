@@ -1,6 +1,14 @@
+import { randomUUID } from 'node:crypto';
+
 import Decimal from 'decimal.js';
 
 import { loadStrategyConfig, type StrategyConfig } from '../../config/strategyConfig';
+import {
+  createSilentLogger,
+  logTransactionEvent,
+  withTransactionContext,
+  type Logger,
+} from '../../utils/logger';
 import {
   ArbitrageCalculator,
   type ArbitrageRoute,
@@ -15,6 +23,8 @@ export interface RouteCalculator {
 export interface StrategyOpportunity {
   evaluation: EvaluatedArbitrageRoute;
   profit: NetProfitResult;
+  /** Identificador único de esta oportunidad, propagado a todos los logs derivados. */
+  transactionId: string;
 }
 
 export type OpportunityExecutor = (opportunity: StrategyOpportunity) => Promise<void>;
@@ -32,6 +42,10 @@ export interface StrategyOrchestratorOptions {
   /** Convierte beneficio y costes reales a USDC antes de aplicar el umbral. */
   estimateCosts: OpportunityCostEstimator;
   execute?: OpportunityExecutor;
+  /** Logger opcional; si no se inyecta se usa uno silencioso. */
+  logger?: Logger;
+  /** Generador de transactionId inyectable (por defecto `crypto.randomUUID`). */
+  transactionIdFactory?: () => string;
 }
 
 /** Coordina la detección periódica y activa la ejecución de oportunidades rentables. */
@@ -43,6 +57,8 @@ export class StrategyOrchestrator {
   private readonly intervalMs: number;
   private readonly estimateCosts: OpportunityCostEstimator;
   private readonly execute: OpportunityExecutor;
+  private readonly logger: Logger;
+  private readonly transactionIdFactory: () => string;
   private timer: NodeJS.Timeout | undefined;
   private cycleRunning = false;
 
@@ -58,6 +74,8 @@ export class StrategyOrchestrator {
     this.intervalMs = options.intervalMs ?? 200;
     this.estimateCosts = options.estimateCosts;
     this.execute = options.execute ?? (async () => undefined);
+    this.logger = options.logger ?? createSilentLogger();
+    this.transactionIdFactory = options.transactionIdFactory ?? (() => randomUUID());
   }
 
   /** Inicia el ciclo de detección inmediatamente y después cada 200 ms por defecto. */
@@ -96,10 +114,47 @@ export class StrategyOrchestrator {
         .map((evaluation) => this.createOpportunity(evaluation))
         .filter((opportunity): opportunity is StrategyOpportunity => opportunity !== undefined);
 
-      await Promise.all(opportunities.map((opportunity) => this.execute(opportunity)));
+      await Promise.all(
+        opportunities.map((opportunity) => this.executeWithLogging(opportunity)),
+      );
       return opportunities;
     } finally {
       this.cycleRunning = false;
+    }
+  }
+
+  /**
+   * Ejecuta el handler externo dentro de una envoltura de logs por transacción.
+   * Emite `started` antes del envío, `succeeded` con el `profit` real cuando
+   * finaliza sin errores y `failed` con el error saneado cuando lanza.
+   * En caso de fallo relanza el error para no ocultarlo al consumidor.
+   */
+  private async executeWithLogging(opportunity: StrategyOpportunity): Promise<void> {
+    const scoped = withTransactionContext(this.logger, opportunity.transactionId, {
+      route: describeRoute(opportunity.evaluation),
+    });
+    const start = Date.now();
+    logTransactionEvent(scoped, {
+      status: 'started',
+      transactionId: opportunity.transactionId,
+      expectedProfit: opportunity.profit.netProfit,
+    });
+    try {
+      await this.execute(opportunity);
+      logTransactionEvent(scoped, {
+        status: 'succeeded',
+        transactionId: opportunity.transactionId,
+        profit: opportunity.profit.netProfit,
+        durationMs: Date.now() - start,
+      });
+    } catch (error) {
+      logTransactionEvent(scoped, {
+        status: 'failed',
+        transactionId: opportunity.transactionId,
+        error,
+        durationMs: Date.now() - start,
+      });
+      throw error;
     }
   }
 
@@ -112,6 +167,37 @@ export class StrategyOrchestrator {
       return undefined;
     }
 
-    return { evaluation, profit };
+    return { evaluation, profit, transactionId: this.transactionIdFactory() };
   }
+}
+
+/**
+ * Genera una descripción legible de la ruta evaluada uniendo los símbolos o
+ * mints implicados. Se usa como campo `route` en los logs por transacción.
+ */
+function describeRoute(evaluation: EvaluatedArbitrageRoute): string {
+  const route = evaluation.route as unknown as {
+    label?: string;
+    id?: string;
+    steps?: Array<{ inputMint?: string; outputMint?: string }>;
+    inputMint?: string;
+    outputMint?: string;
+  };
+  if (route.label) {
+    return route.label;
+  }
+  if (route.id) {
+    return route.id;
+  }
+  if (Array.isArray(route.steps) && route.steps.length > 0) {
+    const mints = [route.steps[0]?.inputMint, ...route.steps.map((step) => step.outputMint)]
+      .filter((value): value is string => typeof value === 'string' && value.length > 0);
+    if (mints.length > 0) {
+      return mints.join('->');
+    }
+  }
+  if (route.inputMint && route.outputMint) {
+    return `${route.inputMint}->${route.outputMint}`;
+  }
+  return 'unknown';
 }

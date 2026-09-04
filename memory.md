@@ -1,172 +1,369 @@
-## Memoria técnica
+# Memoria técnica consolidada
+
+Esta memoria agrupa las decisiones y aprendizajes de implementación por
+módulo principal. Se omiten repeticiones entre tareas, pero se conservan los
+detalles necesarios para continuar el desarrollo sin perder contexto.
+
+## Módulo 1: Monitorización de precios, mempool y red
 
 ### Qué se hizo
-- Módulo 1: monitor de precios Jupiter, caché TTL de 200 ms, `MempoolWatcher` y fallback RPC Helius → Triton → QuickNode.
-- Módulo 2: evaluación de rutas Jupiter de 2 y 3 pasos, cálculo de beneficio neto y `StrategyOrchestrator` con umbral configurable.
 
-### Por qué se hizo así
-- Se separaron monitorización, estrategia y red según la arquitectura.
-- Se usó `Decimal.js` para evitar errores de precisión financiera.
-- Los costes deben llegar normalizados a USDC antes de activar una ejecución.
-- Las dependencias se inyectan para facilitar pruebas sin llamadas reales ni secretos.
+- Se implementó `PriceFetcher` para consultar cotizaciones de Jupiter y
+  normalizar snapshots de precios con `price`, `timestamp` y `dex`.
+- Se añadió `priceCache.ts`, una caché en memoria con TTL de 200 ms para
+  reducir llamadas redundantes y mantener el último valor válido.
+- Se implementó `MempoolWatcher` sobre suscripciones WebSocket/RPC. Filtra
+  logs por los programas DEX configurados para Raydium, Orca y Meteora.
+- Se implementó `RpcManager` con proveedores primario, secundario y terciario
+  (Helius, Triton y QuickNode), health checks, rotación y fallback automático.
+- El monitor tolera errores de Jupiter y rate limits conservando snapshots
+  anteriores para que el ciclo no se detenga.
+- Se añadieron pruebas de normalización de cotizaciones, llamadas paralelas,
+  caché, fallback ante error, polling, filtrado de logs y rotación de RPC.
+
+### Por qué se hizo de esa forma
+
+- La monitorización y toda la lógica de decisión viven en Node.js/TypeScript;
+  Rust/Anchor se reserva exclusivamente para ejecución atómica on-chain.
+- La caché reduce latencia y carga sobre Jupiter sin ocultar indefinidamente
+  un dato obsoleto, ya que expira a los 200 ms.
+- La inyección de dependencias permite probar el monitor con un cliente
+  Jupiter y proveedores RPC simulados, sin red ni secretos reales.
+- El failover evita que un endpoint degradado bloquee la detección. Los
+  consumidores deben tratar los fallos de todos los proveedores como un
+  estado recuperable y registrarlo para observabilidad.
 
 ### Dónde están los cambios
-- `src/core/monitor/`
+
+- `src/core/monitor/priceFetcher.ts`
+- `src/core/monitor/priceCache.ts`
+- `src/core/monitor/mempoolWatcher.ts`
 - `src/core/network/rpcManager.ts`
-- `src/core/strategy/`
 - `src/config/strategyConfig.ts`
+- `src/core/monitor/*.test.ts`
 - `.env.example`
 
 ### Qué hemos aprendido
-- Los importes brutos de tokens no pueden compararse directamente con umbrales en USDC.
-- Jupiter puede aplicar rate limits, por lo que el monitor debe conservar valores anteriores y no detener el proceso.
-- El tip de Jito está en lamports y requiere conversión antes de incluirlo en el beneficio neto.
-- `logsSubscribe` con `processed` observa logs procesados, no un mempool completo de transacciones pendientes.
-- La suite validada alcanza 26 pruebas pasando y el lint está correcto.
 
-## Memoria técnica: Módulo 3
+- `logsSubscribe` con compromiso `processed` observa logs ya procesados; no
+  representa un mempool completo de transacciones pendientes.
+- Los importes brutos de tokens no pueden compararse directamente con un
+  umbral expresado en USDC. La normalización de unidad debe ocurrir antes de
+  activar una ejecución.
+- Jupiter puede aplicar rate limits; el monitor debe conservar el último
+  snapshot válido y no finalizar el proceso ante un error aislado.
+- Los tests deben comprobar tanto el fallback de datos como la rotación de
+  endpoints y el cierre correcto del polling.
+
+## Módulo 2: Estrategia, rutas y beneficio neto
 
 ### Qué se hizo
-- Se definieron las cuentas Anchor del ejecutor.
-- Se implementó `execute_arbitrage` con dos CPI secuenciales para compra y venta.
-- Se añadieron validaciones de autoridad, mints, saldo inicial, saldo final y costes.
-- Se incorporaron errores personalizados para operaciones inválidas, slippage, overflow y arbitraje no rentable.
-- Se creó un arnés de integración SPL en `tests/mev_executor.ts`.
 
-### Por qué se hizo así
-- La ejecución permanece en Rust/Anchor para garantizar atomicidad.
-- Las CPI permiten delegar los swaps a programas externos sin incluir lógica de monitorización en el contrato.
-- Las validaciones on-chain impiden continuar cuando el resultado no cubre gas, fees, tip de Jito o slippage.
-- Las cuentas SPL reales evitan pruebas engañosas con claves públicas arbitrarias.
+- Se implementó `ArbitrageCalculator` para evaluar rutas conectadas de dos y
+  tres pasos usando datos de Jupiter.
+- Se implementó `estimateNetProfit` con `Decimal.js`. La fórmula utilizada es:
+  `netProfit = grossRevenue - jupiterFees - jitoTip - slippageCost`.
+- El coste de slippage se calcula como `grossRevenue * slippageBps / 10000`.
+- Se implementó `StrategyOrchestrator`, que ejecuta ciclos de detección,
+  evita ciclos solapados y sólo solicita ejecución cuando se supera el umbral.
+- Se configuraron umbrales de beneficio mínimo y slippage máximo desde
+  variables de entorno mediante `strategyConfig.ts`.
+- Las pruebas cubren rutas de dos y tres pasos, rutas desconectadas, límites,
+  beneficios positivos y negativos, slippage extremo y precisión decimal.
+
+### Por qué se hizo de esa forma
+
+- `Decimal.js` evita errores de precisión que afectarían decisiones
+  financieras; por ejemplo, `0.3 - 0.1 - 0.1` debe producir exactamente
+  `0.1`, no `0.09999999999999998`.
+- Todos los costes deben estar expresados en la misma moneda de cotización
+  antes de calcular el resultado. El tip de Jito, inicialmente en lamports,
+  requiere conversión a USDC antes de descontarse.
+- La estrategia permanece desacoplada del transporte Jito mediante interfaces
+  inyectables, lo que permite simular oportunidades sin firmar transacciones.
+- El cálculo acepta beneficios negativos para que puedan registrarse y
+  auditarse, pero el orquestador no los ejecuta si no superan el umbral.
 
 ### Dónde están los cambios
+
+- `src/core/strategy/arbitrageCalculator.ts`
+- `src/core/strategy/profitEstimator.ts`
+- `src/core/strategy/strategyOrchestrator.ts`
+- `src/core/strategy/*.test.ts`
+- `src/config/strategyConfig.ts`
+
+### Qué hemos aprendido
+
+- El test base validado es `100 - 0.25 - 0.10 - 0.50 = 99.15`, con 50 bps
+  de slippage.
+- También se validan beneficio negativo cuando los costes superan el ingreso,
+  slippage de 10 000 bps y rechazo de importes negativos o slippage fuera de
+  `[0, 10000]`.
+- Debe mantenerse un test end-to-end que cubra la conversión de tip desde
+  lamports a USDC, porque el estimador recibe el coste ya normalizado.
+- La validación financiera crítica no debe trasladarse a `number` ni quedar
+  sólo en el frontend: debe existir tanto en TypeScript como en Anchor.
+
+## Módulo 3: Contrato de ejecución Anchor
+
+### Qué se hizo
+
+- Se definieron las cuentas Anchor del ejecutor y se implementó
+  `execute_arbitrage` con dos CPI secuenciales: swap de compra y swap de
+  venta.
+- Se validan autoridad, mints, cuentas token, saldos inicial y final,
+  `minimum_output_amount`, slippage, costes y operaciones con overflow.
+- El contrato revierte con errores personalizados cuando el arbitraje no es
+  rentable o una condición de seguridad no se cumple.
+- Se creó un arnés de integración SPL para probar cuentas y balances reales
+  dentro de un entorno controlado.
+- La integración está preparada para delegar swaps a Raydium, Orca y Meteora
+  mediante CPI, sin incluir monitorización ni selección de rutas en Rust.
+
+### Por qué se hizo de esa forma
+
+- La ejecución on-chain debe ser atómica: si compra o venta falla, la
+  transacción completa se revierte.
+- La comprobación final exige que el saldo final sea mayor que el inicial más
+  gas, fees, tip de Jito y slippage estimado. Esto proporciona defensa en
+  profundidad frente a una desincronización del cálculo off-chain.
+- Las CPI permiten reutilizar los programas DEX y mantener el contrato
+  pequeño, verificable y separado del cerebro TypeScript.
+- Las cuentas SPL reales evitan pruebas engañosas basadas únicamente en
+  claves públicas arbitrarias.
+
+### Dónde están los cambios
+
 - `programs/mev_executor/src/lib.rs`
 - `programs/mev_executor/Cargo.toml`
 - `tests/mev_executor.ts`
-- `tsconfig.tests.json`
-- `.eslintrc.cjs`
-- `.gitignore`
-- `package.json`
+- `Anchor.toml`
+- `target/` se genera localmente y no forma parte del código fuente.
 
-### Qué se aprendió
-- `anchor test` requiere Anchor CLI y un validador local o devnet configurado.
-- Las cuentas usadas en CPI deben existir, pertenecer al programa esperado y tener los signers correctos.
-- `minimum_output_amount` y slippage deben validarse on-chain, no solo en TypeScript.
+### Qué hemos aprendido
+
+- Las cuentas usadas en CPI deben existir, pertenecer al programa esperado y
+  llevar los signers correctos; una clave pública válida por sí sola no basta.
+- `minimum_output_amount`, slippage y rentabilidad deben verificarse también
+  on-chain, no sólo en el detector TypeScript.
 - Los costes deben sumarse con operaciones protegidas contra overflow.
-- Las advertencias `unexpected cfg` proceden de macros de Anchor y no impiden la compilación.
-- La integración real con Raydium, Orca o Meteora requiere programas desplegados y cuentas SPL financiadas en un entorno aislado.
+- `anchor test` requiere Anchor CLI y un validador local o devnet configurado.
+- Las advertencias `unexpected cfg` procedentes de macros de Anchor no
+  impiden necesariamente la compilación.
+- La integración real con Raydium, Orca o Meteora necesita programas
+  desplegados, cuentas SPL financiadas y un entorno aislado antes de mainnet.
 
-## Memoria técnica: Módulo 4.1
+## Módulo 4: Bundles Jito, reintentos y secretos
 
 ### Qué se hizo
-- Se implementó `BundleBuilder` en `src/core/executor/bundleBuilder.ts` que construye y firma la instrucción Anchor `execute_arbitrage` con la compra y la venta secuenciadas dentro de una misma transacción atómica.
-- Se añadió el IDL mínimo del programa (`MEV_EXECUTOR_IDL`) y los tipos compartidos (`ArbitrageBundleRequest`, `SwapInstructionData`, `ExecuteArbitrageAccounts`) en `src/contracts/anchor/mevExecutor.ts` para reutilizarlos entre off-chain y pruebas.
-- Se codifican los argumentos con `BorshInstructionCoder` de `@coral-xyz/anchor` y las cuentas CPI adicionales se pasan como `remainingAccounts` sin duplicados.
-- Las transacciones se compilan como `VersionedTransaction` (v0) con blockhash reciente y se firman con la `Keypair` inyectada o cargada desde `PRIVATE_KEY` (`.env`).
-- Se cubrió el flujo con pruebas `node:test` que validan la firma, la secuenciación compra/venta, el rechazo de instrucciones de programas no autorizados, bundles vacíos y swaps inválidos.
 
-### Por qué se hizo así
-- El builder queda desacoplado del transporte a Jito (Tarea 4.2): sólo entrega un `SignedBundle` con transacciones firmadas y `lastValidBlockHeight` para que el ejecutor decida el envío.
-- Se inyecta `connection`, `payer` y `programId` para poder probar sin llamadas RPC reales ni secretos, siguiendo el patrón usado en `RpcManager` y `StrategyOrchestrator`.
-- Se valida el `programId` de cada instrucción antes de firmar para evitar bundles que contengan invocaciones no autorizadas.
-- La carga de la clave privada sólo ocurre si no se inyecta un `Keypair`, y nunca se registra su valor.
-- Se reutiliza el mismo blockhash para todas las transacciones del bundle, garantizando la misma ventana de expiración en el relay.
+- `BundleBuilder` construye la instrucción Anchor `execute_arbitrage`,
+  secuencia compra y venta, propaga cuentas CPI como `remainingAccounts`,
+  compila transacciones v0 y devuelve un `SignedBundle`.
+- Se añadió `MEV_EXECUTOR_IDL` y tipos compartidos para solicitudes de bundle,
+  datos de swap y cuentas Anchor.
+- Se valida el `programId` antes de firmar, se rechazan bundles vacíos o
+  inválidos y se reutiliza el mismo blockhash en las transacciones del bundle.
+- `JitoExecutor` separa el transporte mediante `JitoRelayClient`, usa una
+  factoría dinámica de `jito-ts`, respeta el máximo de cinco transacciones y
+  confirma por estado on-chain y stream del relay.
+- Los resultados normalizados son `confirmed`, `accepted`, `rejected` y
+  `timeout`, con bundle id, firmas, slot, validador y motivo cuando existe.
+- `RetryHandler` reintenta hasta cinco veces en estados recuperables, aplica
+  backoff exponencial y escala el `computeUnitPrice` un 10 % por intento.
+- `src/utils/secrets.ts` centraliza carga de claves base58 o JSON array,
+  providers de secretos, carga idempotente de `.env` y redacción profunda de
+  campos sensibles, incluyendo referencias circulares.
+- Se añadieron simulador Jito en memoria, integración offline y pruebas
+  devnet opt-in que nunca usan `PRIVATE_KEY` ni envían transacciones reales.
+
+### Por qué se hizo de esa forma
+
+- Builder, transporte y retry son capas independientes. Así el builder no
+  conoce gRPC, el executor no reconstruye bundles y el retry puede solicitar
+  una nueva firma con mayor prioridad.
+- La confirmación dual cubre tanto un relay que acepta pero no incluye como
+  una inclusión on-chain cuyo evento gRPC llega tarde.
+- La clave privada se inyecta o se obtiene de variables de entorno; nunca se
+  incluye en código, logs ni mensajes de error.
+- La factoría dinámica evita cargar gRPC durante pruebas y mantiene el build
+  utilizable cuando `jito-ts` no está disponible en un entorno unitario.
+- La simulación con dobles permite verificar aceptación, rechazo, timeout,
+  errores de stream y reintentos sin riesgo de fondos.
 
 ### Dónde están los cambios
+
 - `src/core/executor/bundleBuilder.ts`
-- `src/core/executor/bundleBuilder.test.ts`
-- `src/contracts/anchor/mevExecutor.ts`
-
-### Qué se aprendió
-- El `BorshInstructionCoder` requiere que los nombres de los argumentos en camelCase coincidan con los del IDL (`buyInstruction`, `sellInstruction`), aunque en Rust estén en snake_case.
-- Las cuentas CPI del swap deben propagarse como `remainingAccounts` para que el programa Anchor pueda resolver los `AccountInfo` durante `invoke`.
-- Usar `VersionedTransaction` mantiene compatibilidad con Address Lookup Tables cuando la ruta de arbitraje involucre muchas cuentas.
-- Ejecutar las pruebas compiladas con `node --test dist/**/*.test.js` es suficiente: no se necesita `ts-node` en esta fase.
-- Toda la suite (31 pruebas) sigue pasando y el lint queda limpio tras la implementación.
-
-## Memoria técnica: Módulo 4.2
-
-### Qué se hizo
-- Se implementó `JitoExecutor` en `src/core/executor/jitoExecutor.ts` que recibe un `SignedBundle`, lo envía al block-engine de Jito y confirma su inclusión en la cadena.
-- Se aísla el transporte gRPC detrás de la interfaz `JitoRelayClient` (`sendBundle` + `onBundleResult`), con una factoría `createSearcherRelayClient(url, authKeypair)` que carga `jito-ts/dist/sdk/block-engine` con `import()` dinámico y construye un `bundle.Bundle` respetando el límite `JITO_MAX_TX_PER_BUNDLE = 5`.
-- La confirmación es dual: sondeo `getSignatureStatuses` para inclusión on-chain más suscripción al stream de resultados del relay; se corta al superar `startBlockHeight + confirmationBlockWindow` o el `lastValidBlockHeight` del bundle.
-- Los estados devueltos son `confirmed | accepted | rejected | timeout`, con `bundleId`, `signatures`, `slot`, `validatorIdentity` y `rejectionReason` según corresponda.
-- Se añadieron pruebas `node:test` para: confirmación on-chain, rechazo del relay con motivo, timeout por ventana de bloques, bundle vacío, bundle con demasiadas transacciones y fallo on-chain de una firma.
-
-### Por qué se hizo así
-- Se define `JitoRelayClient` como interfaz mínima para poder probar sin gRPC ni keypair, siguiendo la inyección de dependencias ya usada en `RpcManager` y `BundleBuilder`.
-- La factoría con `import()` dinámico evita cargar el runtime de gRPC durante las pruebas y mantiene el bundle build limpio para entornos donde `jito-ts` no esté disponible.
-- La doble confirmación protege contra dos modos de fallo: (a) el relay acepta y luego el validador no incluye, (b) el validador confirma pero el evento del stream se retrasa.
-- El tip de Jito y el `computeUnitPrice` dinámico quedan fuera de esta tarea (los cubre la 8.2) para mantener el módulo enfocado en el transporte.
-
-### Dónde están los cambios
 - `src/core/executor/jitoExecutor.ts`
-- `src/core/executor/jitoExecutor.test.ts`
-- `.env.example`
-
-### Qué se aprendió
-- `client.onBundleResult` de `jito-ts` entrega objetos con `accepted?` o `rejected?`, y el rechazo es una unión discriminada por clave (`stateAuctionBidRejected`, `simulationFailure`, etc.); recorrer las keys permite extraer un motivo legible sin acoplarse a un tipo generado.
-- El `sendBundle` del searcher devuelve directamente un `bundleId` (uuid), no una promesa con envoltorio; los tests pueden simularlo con un simple `Promise.resolve(id)`.
-- En el runner `node:test`, un `test(...)` sin su llave de cierre `});` provoca que los tests siguientes se registren como subtests del anterior y se marquen como `cancelledByParent`; verificar el cierre correcto de cada bloque evita falsos negativos.
-- El paquete `jito-ts` expone tipos con propiedades enumeradas para `Rejected`, por lo que aceptar `rejected: unknown` en el mapper y validar en runtime es más robusto que tipar contra el generado.
-- La suite completa alcanza 11 pruebas locales (5 de `bundleBuilder` + 6 de `jitoExecutor`) además de las pruebas Anchor externas, y `npm run lint` sigue en verde.
-
-## Memoria técnica: Módulo 4.3
-
-### Qué se hizo
-- Se implementó `RetryHandler` en `src/core/executor/retryHandler.ts`, un orquestador que reintenta el envío del bundle hasta cinco veces cuando el estado no es `confirmed` o `accepted`, escalando el `computeUnitPrice` un 10 % entre intentos y aplicando backoff exponencial configurable.
-- Se define la interfaz `BundleSubmitter` (`submit(bundle) => BundleSubmissionResult`) que implementa naturalmente `JitoExecutor`, y una `BundleFactory` que recibe el `computeUnitPrice` vigente para que el consumidor reconstruya el bundle con la instrucción `ComputeBudgetProgram.setComputeUnitPrice` cuando se integre la Tarea 8.2.
-- El resultado agregado `RetryOutcome` conserva el historial completo (`RetryAttempt[]`) con el `computeUnitPrice`, estado, `bundleId`, motivo de rechazo o mensaje de error de cada intento, permitiendo auditar y alimentar el dashboard.
-- Se validan las opciones (`maxAttempts > 0`, `computeUnitPriceMultiplier > 1`, backoff no negativo) y se inyecta una función `sleepFn` para poder omitir tiempos reales en las pruebas.
-- Se añadieron seis pruebas `node:test` que cubren: éxito al primer intento, reintento tras `timeout`, agotamiento de intentos con `timeout` final, tolerancia a errores transitorios del submitter, propagación cuando todos los intentos fallan con excepción y validación de opciones inválidas.
-
-### Por qué se hizo así
-- El escalado del `computeUnitPrice` vive fuera del `JitoExecutor` para mantener el envío/confirmación como una capa determinista de una sola pasada; así el retry sólo necesita una `BundleFactory` que reconstruya y refirme el bundle con un `computeUnitPrice` mayor.
-- La política de backoff exponencial con `sleepFn` inyectable respeta el patrón usado en el resto del proyecto (dependencias inyectables, sin llamadas reales en pruebas) y evita tests lentos o flakey.
-- Los estados `confirmed` y `accepted` cortan inmediatamente el ciclo para no gastar más `computeUnitPrice` cuando el relay o la cadena ya asumieron el bundle; los estados `timeout` y `rejected` disparan reintento porque son recuperables con priorización mayor.
-- Guardar la historia detallada facilita generar los logs estructurados (`pino`) exigidos por la arquitectura y sirve como base para alertas Telegram/Slack en Tarea 5.x sin acoplar el `RetryHandler` a un logger concreto.
-
-### Dónde están los cambios
 - `src/core/executor/retryHandler.ts`
-- `src/core/executor/retryHandler.test.ts`
-- `tasklist.md` (marcadores ✅ para Tareas 4.2 y 4.3)
-
-### Qué se aprendió
-- Un `test(...)` de `node:test` que pierde su llave de cierre `});` provoca que los siguientes tests se anidan como subtests y se cancelen con `cancelledByParent`; después del arreglo se recuperaron los seis casos de retry sin flakes.
-- Reutilizar la interfaz `BundleSubmitter` en lugar de importar `JitoExecutor` completo mantiene el módulo probado sin arrastrar dependencias de `jito-ts` en la suite unitaria.
-- Escalar el precio con `Math.ceil` sobre el multiplicador flotante garantiza que cada reintento use al menos un `microLamport` más que el anterior, incluso cuando el multiplicador da valores fraccionarios (por ejemplo 1000 → 1100 → 1210).
-- La suite local sube a 17 pruebas (5 `bundleBuilder` + 6 `jitoExecutor` + 6 `retryHandler`) y `tsc` con `strict` sigue sin errores.
-
-## Memoria técnica: Módulo 4.4
-
-### Qué se hizo
-- Se creó `src/utils/secrets.ts` como punto único de carga y saneamiento de secretos: exporta `loadKeypair`, `loadKeypairFromEnv`, `EnvSecretsProvider`, `SecretsProvider`, `redactSecret`, `redactSensitiveFields`, `isSensitiveFieldName`, `loadEnv` y las constantes `PRIVATE_KEY_ENV` / `REDACTED_PLACEHOLDER`.
-- `loadKeypair` acepta claves en base58 y en formato JSON array (compatible con `solana-keygen`), valida entradas vacías y **nunca incluye el valor del secreto en el mensaje de error** cuando el formato es inválido.
-- `EnvSecretsProvider` normaliza espacios y trata cadenas vacías como ausentes; `loadEnv` invoca `dotenv.config()` una única vez por proceso (idempotente).
-- `redactSensitiveFields` recorre objetos y arrays de forma recursiva, reemplaza valores cuyo nombre de campo contenga palabras clave sensibles (`privateKey`, `secret`, `apiKey`, `password`, `authorization`, `mnemonic`, `seed`, `token`, …) por `***REDACTED***`, sin mutar la entrada y tolerando referencias circulares mediante un `WeakSet`.
-- Se refactorizó `BundleBuilder` para consumir `loadKeypair` y `loadKeypairFromEnv` desde el módulo compartido, eliminando la duplicación local con `bs58.decode` que existía antes.
-- Se añadieron once pruebas `node:test` que cubren: carga base58, carga JSON array, ausencia de la variable, cadena vacía, no filtración de la clave en errores, uso de un `SecretsProvider` inyectado, error por variable faltante en el provider, normalización de `process.env`, `redactSecret` con distintos inputs, detección de campos sensibles y saneamiento profundo con referencias circulares.
-- Se actualizó `.env.example` con las notas sobre formato de `PRIVATE_KEY` y la referencia a `src/utils/secrets.ts`.
-
-### Por qué se hizo así
-- La arquitectura exige un **Secrets Manager** independiente del transporte y del builder; extraer la carga a `src/utils/secrets.ts` cumple esa separación y prepara el terreno para AWS Secrets Manager (basta con implementar otro `SecretsProvider`).
-- El error de formato inválido no incluye el valor de la clave para evitar cualquier filtración accidental cuando `pino` u otro logger imprima la excepción.
-- La redacción por nombre de campo es defensiva: colapsa todo el subárbol si el padre coincide, lo que evita fugas por serialización de estructuras que envuelvan un secreto en un objeto más complejo.
-- Se mantiene el patrón de inyección de dependencias (`SecretsProvider` con implementación por defecto) igual que `RpcManager`, `BundleBuilder`, `JitoExecutor` y `RetryHandler`, permitiendo probar sin tocar `process.env`.
-- No se introdujo `pino` en este módulo para no acoplarlo a un logger concreto; el saneamiento se expone como función pura que cualquier `pino.transport` o serializer puede aplicar.
-
-### Dónde están los cambios
+- `src/core/executor/*.test.ts`
+- `src/contracts/anchor/mevExecutor.ts`
 - `src/utils/secrets.ts`
 - `src/utils/secrets.test.ts`
-- `src/core/executor/bundleBuilder.ts` (elimina el `loadKeypair` local y consume el módulo compartido)
+- `tests/integration/`
 - `.env.example`
-- `tasklist.md` (marcador ✅ para Tarea 4.4)
 
-### Qué se aprendió
-- Un nombre de campo con un fragmento sensible (`tokens`, `secretKey`, `authorization`) hace que `redactSensitiveFields` colapse todo el subárbol; los tests deben usar nombres neutros (`entries`) cuando el objetivo es verificar la propagación al interior del contenedor.
-- Reutilizar `bs58.decode` y `JSON.parse` en un único módulo evita divergencias sutiles en el manejo de errores (por ejemplo, el `catch` unificado impide dejar escapar `SyntaxError` con fragmentos del JSON original).
-- `dotenv.config()` es seguro invocarlo múltiples veces, pero envolverlo en una guarda evita logs de aviso duplicados en pipelines que arranquen varios entrypoints.
-- La suite local llega a 28 pruebas (5 `bundleBuilder` + 6 `jitoExecutor` + 6 `retryHandler` + 11 `secrets`) y `tsc --strict` sigue sin errores.
+### Qué hemos aprendido
 
+- `BorshInstructionCoder` exige nombres camelCase del IDL (`buyInstruction`,
+  `sellInstruction`) aunque Rust use snake_case.
+- Las cuentas CPI adicionales deben ir como `remainingAccounts` para que
+  Anchor pueda resolver los `AccountInfo` durante `invoke`.
+- Las transacciones v0 conservan compatibilidad con Address Lookup Tables
+  cuando una ruta requiere muchas cuentas.
+- En `node:test`, olvidar el cierre `});` de un test puede anidar los
+  siguientes y producir falsos `cancelledByParent`.
+- El `sendBundle` de searcher devuelve directamente un UUID; el simulador no
+  debe envolverlo en una respuesta ficticia.
+- Queda como hardening añadir `maxComputeUnitPrice` al retry y verificar en
+  Tarea 8.2 que `ComputeBudgetProgram.setComputeUnitPrice` sea la primera
+  instrucción del bundle final.
 
+## Módulo 5: Logs, alertas y seguridad operacional
 
+### Qué se hizo
+
+- Se implementó `createLogger` con Pino, JSON estructurado, timestamp ISO,
+  nivel textual, servicio, rotación por tiempo/tamaño mediante `pino-roll` y
+  destino inyectable para pruebas.
+- Se añadieron `withTransactionContext`, `logTransactionEvent` y
+  `serializeError` para eventos `started`, `succeeded` y `failed`, incluyendo
+  `transactionId`, beneficio, duración y error saneado.
+- Se instrumentaron `StrategyOrchestrator`, `BundleBuilder`, `JitoExecutor` y
+  `RetryHandler` con contexto y eventos de ciclo de vida.
+- Se creó `AlertManager` con canales Telegram y Slack, filtro por severidad,
+  timestamp, saneamiento de metadata, timeout configurable y tolerancia a
+  fallos mediante `Promise.allSettled`.
+- Las configuraciones de logger y alertas se leen desde `.env`; los tests
+  usan `Writable`, fetch simulado, canales en memoria y providers inyectados.
+- Se añadieron suites unitarias y de aceptación para formato, redacción,
+  errores HTTP, niveles, contexto, canales y secretos.
+
+### Por qué se hizo de esa forma
+
+- `redactSensitiveFields` es la única fuente de verdad para logger, API y
+  alertas. Esto evita que cada transporte tenga una lista distinta.
+- El serializador de errores se registra explícitamente porque Pino aplica
+  serializers antes de `formatters.log`; un `Error` sin serializar puede
+  perder `message` y `stack` o filtrarse de forma inconsistente.
+- `Promise.allSettled` garantiza que un Slack caído no impida entregar la
+  alerta a Telegram ni bloquee la ruta caliente del bot.
+- Los destinos se inyectan en pruebas para evitar threads de `pino-roll`, red
+  externa y credenciales reales.
+- Los errores de Telegram y Slack sólo exponen status y statusText; nunca
+  token, URL de webhook, chat id ni `cause` sensible.
+
+### Dónde están los cambios
+
+- `src/utils/logger.ts`
+- `src/utils/alertManager.ts`
+- `src/utils/logger.test.ts`
+- `src/utils/alertManager.test.ts`
+- `tests/logger.test.ts`
+- `tests/alertManager.test.ts`
+- `.env.example`
+- `package.json`
+- `tasklist.md`
+
+### Qué hemos aprendido
+
+- La suite de aceptación debe permanecer separada de `test:unit`: los tests
+  raíz de `tests/` se compilan con `tsconfig.tests.json` y los unitarios de
+  `src/` con el pipeline principal.
+- La suite local llegó a 103 pruebas unitarias, además de aceptación e
+  integración offline; los conteos históricos menores corresponden a estados
+  anteriores del repositorio.
+- La integración de `AlertManager` con el runtime todavía corresponde al
+  bootstrap del bot. También es recomendable sanear dentro de cada canal
+  como defensa adicional para consumidores que los invoquen directamente.
+- El uso de `globalThis.fetch` reduce dependencias; los tests deben inyectar
+  un fetch compatible cuando se ejecuten en otro runtime.
+
+## Módulo 6: Dashboard web y API
+
+### Qué se hizo
+
+- Se creó el servidor Express con `GET /status`, `GET /api/status`,
+  `GET /api/health` y `GET /api/opportunities`.
+- `InMemoryBotStatusProvider` mantiene estado y métricas con snapshots
+  copiados para evitar mutaciones accidentales. `InMemoryOpportunityFeed`
+  mantiene un buffer FIFO y soporta `since` y `limit` con máximo 100 entradas.
+- El servidor añade `X-Request-Id`, logging de requests, 404 uniforme,
+  fallback SPA opcional y saneamiento de respuestas y errores.
+- Se creó el dashboard React con tablero de oportunidades, métricas,
+  historial en `localStorage`, configuración editable y gráficos Chart.js.
+- `src/web/api/client.ts` centraliza fetch tipado, URLs, `cache: no-store`,
+  `AbortSignal`, errores HTTP y cliente configurable por `baseUrl`.
+- `app.tsx` consulta estado y oportunidades en paralelo cada 2 segundos,
+  permite mínimo configurable de 500 ms, usa cursor incremental `since`,
+  deduplica oportunidades por `id`, conserva hasta 100 y filtra por slippage.
+- Chart.js muestra evolución temporal de beneficio y oportunidades en ejes
+  separados, además de ganancias diarias agregadas. Las instancias se
+  actualizan sin animación y se destruyen al desmontar.
+- El frontend se compila sin bundler mediante `tsconfig.web.json`, JSX
+  moderno e import maps para React, React DOM y Chart.js.
+- Se añadieron pruebas de rutas, estado, feed, ordenación, filtros, límites,
+  saneamiento y servidor HTTP; la compilación web cubre la integración de
+  tipos del cliente y la aplicación.
+
+### Por qué se hizo de esa forma
+
+- El cliente HTTP está separado de React para que la vista no conozca rutas
+  Express ni detalles de transporte. Las respuestas usan cadenas para
+  importes financieros y no pierden precisión por serialización.
+- El polling satisface el requisito de tiempo real sin introducir WebSockets
+  ni una nueva infraestructura en el backend. Las dos peticiones se ejecutan
+  en paralelo para reducir latencia.
+- El cursor incremental y la deduplicación evitan volver a descargar o
+  mostrar repetidamente las mismas oportunidades.
+- `localStorage` conserva historial y configuración sin introducir base de
+  datos dentro del alcance del módulo.
+- El frontend sólo convierte beneficio a `number` para coloreado o gráficos;
+  no toma decisiones financieras críticas ni reemplaza `Decimal.js`.
+- El build separado mantiene aislados los tipos DOM/JSX del backend Node y
+  evita forzar bundlers o dependencias de servidor en el cliente.
+
+### Dónde están los cambios
+
+- `src/api/routes.ts`
+- `src/api/server.ts`
+- `src/api/index.ts`
+- `src/api/routes.test.ts`
+- `src/api/server.test.ts`
+- `src/web/app.tsx`
+- `src/web/api/client.ts`
+- `src/web/components/Charts.tsx`
+- `src/web/types/chart.d.ts`
+- `public/index.html`
+- `src/devDashboard.ts`
+- `tsconfig.web.json`
+- `package.json`, `.env.example`, `.gitignore`, `tasklist.md`
+
+### Qué hemos aprendido
+
+- `build:web`, `build` y `lint` son gates distintos: el primero valida DOM y
+  JSX; los otros validan backend y código TypeScript del servidor.
+- Un import map con CDN es suficiente para un dashboard interno sin SSR ni
+  necesidad de bundler. El coste aceptado es depender del CDN al arrancar.
+- Chart.js no quedó instalado como dependencia porque el registro npm sufrió
+  `ECONNRESET`; se dejó un `.d.ts` ambiental mínimo. Puede sustituirse por
+  `chart.js@4.4.6` cuando se quiera tipado completo.
+- El historial está limitado a 50 snapshots y `localStorage` no sustituye un
+  endpoint histórico si se necesita una vista mensual.
+- La validación actual cubre API y compilación, pero queda como mejora una
+  suite DOM específica para React y el cliente HTTP.
+- El smoke test puede fallar con `EADDRINUSE` si `127.0.0.1:3001` ya está
+  ocupado. Se debe liberar el proceso o usar otro `API_PORT`.
+
+## Estado de verificación consolidado
+
+- `npm run build`: correcto.
+- `npm run build:web`: correcto.
+- `npm run lint`: correcto.
+- `npm run test:unit`: 103 pruebas correctas.
+- `npm run test:acceptance`: correcto en la última ejecución validada.
+- Las integraciones offline pasan; las pruebas devnet son opt-in y quedan
+  omitidas salvo que `RUN_DEVNET_TESTS=1`.
+- La lógica de Net Profit fue verificada con `Decimal.js`, incluyendo fees
+  de Jupiter, tip de Jito, slippage, resultado negativo y precisión decimal.
+- No se detectaron secretos versionados ni vulnerabilidades bloqueantes.

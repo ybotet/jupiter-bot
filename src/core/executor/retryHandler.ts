@@ -1,3 +1,4 @@
+import { createSilentLogger, serializeError, type Logger } from '../../utils/logger';
 import type { SignedBundle } from './bundleBuilder';
 import type { BundleSubmissionResult, BundleSubmissionStatus } from './jitoExecutor';
 
@@ -32,6 +33,8 @@ export interface RetryHandlerOptions {
   initialBackoffMs?: number;
   backoffMultiplier?: number;
   sleepFn?: (ms: number) => Promise<void>;
+  /** Logger opcional para trazabilidad de reintentos y backoff. */
+  logger?: Logger;
 }
 
 /** Detalle de un intento individual para poder auditar reintentos posteriormente. */
@@ -71,6 +74,7 @@ export class RetryHandler {
   private readonly initialBackoffMs: number;
   private readonly backoffMultiplier: number;
   private readonly sleepFn: (ms: number) => Promise<void>;
+  private readonly logger: Logger;
 
   /** Configura la política de reintentos con valores por defecto seguros para producción. */
   constructor(submitter: BundleSubmitter, options: RetryHandlerOptions = {}) {
@@ -83,6 +87,7 @@ export class RetryHandler {
     this.initialBackoffMs = options.initialBackoffMs ?? DEFAULT_INITIAL_BACKOFF_MS;
     this.backoffMultiplier = options.backoffMultiplier ?? DEFAULT_BACKOFF_MULTIPLIER;
     this.sleepFn = options.sleepFn ?? defaultSleep;
+    this.logger = options.logger ?? createSilentLogger();
 
     if (this.maxAttempts <= 0) {
       throw new Error('maxAttempts debe ser mayor que cero');
@@ -116,6 +121,10 @@ export class RetryHandler {
       const currentComputeUnitPrice = Math.ceil(computeUnitPrice);
       try {
         const bundle = await bundleFactory(currentComputeUnitPrice);
+        this.logger.debug(
+          { attempt, computeUnitPrice: currentComputeUnitPrice },
+          'retry:attempt-start',
+        );
         const result = await this.submitter.submit(bundle);
         history.push({
           attempt,
@@ -126,6 +135,15 @@ export class RetryHandler {
         });
 
         if (TERMINAL_SUCCESS_STATES.has(result.status)) {
+          this.logger.info(
+            {
+              attempts: attempt,
+              computeUnitPrice: currentComputeUnitPrice,
+              bundleId: result.bundleId,
+              status: result.status,
+            },
+            'retry:success',
+          );
           return {
             finalStatus: result.status,
             attempts: attempt,
@@ -136,6 +154,16 @@ export class RetryHandler {
           };
         }
 
+        this.logger.warn(
+          {
+            attempt,
+            computeUnitPrice: currentComputeUnitPrice,
+            status: result.status,
+            bundleId: result.bundleId,
+            rejectionReason: result.rejectionReason,
+          },
+          'retry:attempt-failed',
+        );
         lastResult = result;
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -145,6 +173,14 @@ export class RetryHandler {
           status: 'error',
           error: errorMessage,
         });
+        this.logger.warn(
+          {
+            attempt,
+            computeUnitPrice: currentComputeUnitPrice,
+            err: serializeError(error),
+          },
+          'retry:attempt-error',
+        );
         lastError = error instanceof Error ? error : new Error(errorMessage);
       }
 
@@ -159,6 +195,15 @@ export class RetryHandler {
 
     // Se agotaron los reintentos: se propaga el último error o el último estado no exitoso.
     if (lastResult) {
+      this.logger.warn(
+        {
+          attempts: this.maxAttempts,
+          bundleId: lastResult.bundleId,
+          status: lastResult.status,
+          rejectionReason: lastResult.rejectionReason,
+        },
+        'retry:exhausted',
+      );
       return {
         finalStatus: lastResult.status,
         attempts: this.maxAttempts,
@@ -170,6 +215,10 @@ export class RetryHandler {
       };
     }
 
+    this.logger.error(
+      { attempts: this.maxAttempts, err: serializeError(lastError) },
+      'retry:exhausted-error',
+    );
     throw new Error(
       `Reintentos agotados sin recibir respuesta del relay: ${lastError?.message ?? 'error desconocido'}`,
     );

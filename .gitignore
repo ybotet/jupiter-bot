@@ -6,6 +6,7 @@ dist/
 dist-tests/
 build/
 out/
+public/assets/
 
 # Logs y temporales
 logs/

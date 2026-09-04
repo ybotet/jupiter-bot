@@ -70,8 +70,8 @@ Este plan desglosa la construcción del bot en **10 módulos secuenciales**, pri
 
 **Objetivo:** Construir y enviar Jito Bundles para ejecutar el arbitraje atómicamente.
 
-| ID  | Tarea                                                                                                              | Archivos Involucrados                | Criterio de Aceptación                                                               |
-| --- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------ |
+| ID     | Tarea                                                                                                              | Archivos Involucrados                | Criterio de Aceptación                                                               |
+| ------ | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------ |
 | ✅ 4.1 | Crear `BundleBuilder` que construya instrucciones firmadas para el contrato Anchor.                                | `src/core/executor/bundleBuilder.ts` | Genera un bundle con las instrucciones de compra y venta correctamente secuenciadas. |
 | ✅ 4.2 | Integrar `Jito` SDK para enviar bundles al relay y manejar confirmaciones.                                         | `src/core/executor/jitoExecutor.ts`  | Envía bundles y recibe confirmación en < 3 bloques.                                  |
 | ✅ 4.3 | Implementar lógica de reintentos: si el bundle no se confirma en 3 bloques, reenviar con mayor `computeUnitPrice`. | `src/core/executor/retryHandler.ts`  | Reintenta hasta 5 veces con backoff exponencial.                                     |
@@ -85,12 +85,12 @@ Este plan desglosa la construcción del bot en **10 módulos secuenciales**, pri
 
 **Objetivo:** Implementar logging estructurado y alertas en tiempo real para supervisión.
 
-| ID  | Tarea                                                                                                                 | Archivos Involucrados                                | Criterio de Aceptación                                           |
-| --- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------- |
-| 5.1 | Configurar logger con `pino` y salida a archivo rotativo (JSON).                                                      | `src/utils/logger.ts`                                | Los logs se escriben en formato JSON con timestamp y nivel.      |
-| 5.2 | Enviar logs a Elasticsearch (o archivo local) con el contexto de cada transacción.                                    | `src/utils/logger.ts`                                | Los logs incluyen `transactionId`, `profit`, `error` si falla.   |
-| 5.3 | Crear sistema de alertas: notificar a Telegram/Slack cuando: oportunidad perdida, transacción fallida, error crítico. | `src/utils/alertManager.ts`                          | Se recibe notificación en el canal configurado.                  |
-| 5.4 | Escribir pruebas unitarias para el logger y el sistema de alertas (mocks).                                            | `tests/logger.test.ts`, `tests/alertManager.test.ts` | Las pruebas validan la estructura del log y el envío de alertas. |
+| ID  | Tarea                                                                                                                    | Archivos Involucrados                                | Criterio de Aceptación                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------- |
+| 5.1 | ✅ Configurar logger con `pino` y salida a archivo rotativo (JSON).                                                      | `src/utils/logger.ts`                                | Los logs se escriben en formato JSON con timestamp y nivel.      |
+| 5.2 | ✅ Enviar logs a Elasticsearch (o archivo local) con el contexto de cada transacción.                                    | `src/utils/logger.ts`                                | Los logs incluyen `transactionId`, `profit`, `error` si falla.   |
+| 5.3 | ✅ Crear sistema de alertas: notificar a Telegram/Slack cuando: oportunidad perdida, transacción fallida, error crítico. | `src/utils/alertManager.ts`                          | Se recibe notificación en el canal configurado.                  |
+| 5.4 | ✅ Escribir pruebas unitarias para el logger y el sistema de alertas (mocks).                                            | `tests/logger.test.ts`, `tests/alertManager.test.ts` | Las pruebas validan la estructura del log y el envío de alertas. |
 
 ---
 
@@ -99,12 +99,12 @@ Este plan desglosa la construcción del bot en **10 módulos secuenciales**, pri
 
 **Objetivo:** Desarrollar una interfaz web para visualizar oportunidades y estado del bot.
 
-| ID  | Tarea                                                                                                | Archivos Involucrados                    | Criterio de Aceptación                                                 |
-| --- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------------------- |
-| 6.1 | Crear servidor HTTP con Express que sirva el frontend (React) y una API REST para el estado del bot. | `src/api/server.ts`, `src/api/routes.ts` | El servidor responde con el estado del bot en `GET /status`.           |
-| 6.2 | Construir frontend en React con componentes: tablero de oportunidades, historial, configuración.     | `public/index.html`, `src/web/app.tsx`   | La interfaz muestra datos en tiempo real (usando WebSocket o polling). |
-| 6.3 | Integrar gráficos (Chart.js) para visualizar ganancias diarias y oportunidades detectadas.           | `src/web/components/Charts.tsx`          | Los gráficos se actualizan con datos históricos.                       |
-| 6.4 | Conectar el frontend con la API del backend para mostrar oportunidades en tiempo real.               | `src/web/api/client.ts`                  | El tablero se actualiza automáticamente al detectar una oportunidad.   |
+| ID     | Tarea                                                                                                   | Archivos Involucrados                      | Criterio de Aceptación                                                 |
+| ------ | ------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------- |
+| 6.1    | ✅ Crear servidor HTTP con Express que sirva el frontend (React) y una API REST para el estado del bot. | `src/api/server.ts`, `src/api/routes.ts`   | El servidor responde con el estado del bot en `GET /status`.           |
+| 6.2    | ✅ Construir frontend en React con componentes: tablero de oportunidades, historial, configuración.     | `public/index.html`, `src/web/app.tsx`     | La interfaz muestra datos en tiempo real (usando WebSocket o polling). |
+| 6.3    | ✅ Integrar gráficos (Chart.js) para visualizar ganancias diarias y oportunidades detectadas.           | `src/web/components/Charts.tsx`            | Los gráficos se actualizan con datos históricos.                       |
+| ✅ 6.4 | Conectar el frontend con la API del backend para mostrar oportunidades en tiempo real.                  | `src/web/api/client.ts`, `src/web/app.tsx` | El tablero se actualiza automáticamente al detectar una oportunidad.   |
 
 ---
 

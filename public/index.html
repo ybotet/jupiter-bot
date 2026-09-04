@@ -1,221 +1,262 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jupiter Bot Monitor</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Panel web del bot Jupiter (Tarea 6.2)" />
+    <title>Jupiter Bot · Dashboard</title>
     <style>
+      /*
+       * Hoja de estilos mínima embebida para no depender de un pipeline CSS
+       * externo. Los colores y espaciados son consistentes con un dashboard
+       * técnico oscuro. Al ser inline no requiere fetch adicional.
+       */
       :root {
-        --bg: #0b1020;
-        --panel: #121a2d;
-        --panel-2: #1a2642;
-        --text: #edf2ff;
-        --muted: #9aa8c7;
-        --accent: #4cc9f0;
-        --accent-2: #7ae582;
-        --danger: #ff5d73;
+        color-scheme: dark;
+        --bg: #0f172a;
+        --panel-bg: #1e293b;
+        --panel-border: #334155;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --positive: #22c55e;
+        --negative: #ef4444;
+        --warning: #f59e0b;
       }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
+      * { box-sizing: border-box; }
+      html, body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(180deg, var(--bg), #0f172a);
+        padding: 0;
+        background: var(--bg);
         color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
-
-      .container {
-        max-width: 980px;
-        margin: 40px auto;
-        padding: 20px;
+      .app { max-width: 1100px; margin: 0 auto; padding: 24px; }
+      .header {
+        border-bottom: 1px solid var(--panel-border);
+        padding-bottom: 16px;
+        margin-bottom: 16px;
       }
-
-      h1 {
-        font-size: 2rem;
-        margin-bottom: 10px;
-      }
-
-      .subtitle {
-        color: var(--muted);
-        margin-bottom: 28px;
-      }
-
-      .cards {
+      .header-title { display: flex; align-items: center; gap: 12px; }
+      .header-title h1 { margin: 0; font-size: 1.5rem; }
+      .header-meta {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin: 12px 0 0 0;
       }
-
-      .card {
-        background: rgba(18, 26, 45, 0.96);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 14px;
-        padding: 20px;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+      .header-meta div {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 8px 12px;
       }
-
-      .label {
+      .header-meta dt {
         color: var(--muted);
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.05em;
       }
-
-      .value {
-        font-size: 2rem;
-        margin-top: 10px;
-        font-weight: bold;
-      }
-
-      .value.small {
-        font-size: 1.4rem;
-      }
-
-      .status {
+      .header-meta dd { margin: 4px 0 0 0; font-size: 0.95rem; }
+      .status-pill {
         display: inline-block;
-        margin-top: 8px;
-        padding: 6px 10px;
+        padding: 2px 10px;
         border-radius: 999px;
-        font-size: 0.8rem;
-        background: rgba(122, 229, 130, 0.12);
-        color: var(--accent-2);
-      }
-
-      .table-wrap {
-        margin-top: 30px;
-        background: rgba(18, 26, 45, 0.96);
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        overflow: hidden;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th,
-      td {
-        padding: 14px 18px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        text-align: left;
-      }
-
-      th {
-        background: var(--panel-2);
-        color: var(--muted);
-      }
-
-      td {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: var(--panel-border);
         color: var(--text);
+      }
+      .status-running { background: rgba(34, 197, 94, 0.18); color: var(--positive); }
+      .status-starting { background: rgba(56, 189, 248, 0.18); color: var(--accent); }
+      .status-paused { background: rgba(245, 158, 11, 0.18); color: var(--warning); }
+      .status-stopped { background: rgba(239, 68, 68, 0.18); color: var(--negative); }
+      .error-banner {
+        margin-top: 12px;
+        padding: 10px 14px;
+        border-left: 4px solid var(--negative);
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--negative);
+        border-radius: 4px;
       }
     </style>
+    <style>
+      /* Segunda hoja de estilos con los bloques específicos del contenido. */
+      .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+      .tab {
+        background: var(--panel-bg);
+        color: var(--text);
+        border: 1px solid var(--panel-border);
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      .tab:hover { border-color: var(--accent); }
+      .tab-active { border-color: var(--accent); color: var(--accent); }
+      .panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 20px;
+      }
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .panel h2 { margin: 0 0 12px 0; font-size: 1.15rem; }
+      .placeholder { color: var(--muted); font-style: italic; }
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .metric-card {
+        background: var(--bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .metric-label {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .metric-value { font-size: 1.4rem; font-weight: 600; }
+      .profit-card {
+        background: var(--bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .profit-positive { border-color: var(--positive); }
+      .profit-card h3 {
+        margin: 0 0 6px 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .profit-value { margin: 0; font-size: 1.6rem; font-weight: 700; }
+      .profit-hint { margin: 6px 0 0 0; color: var(--muted); font-size: 0.85rem; }
+      .secondary-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin: 0;
+      }
+      .secondary-meta dt {
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .secondary-meta dd { margin: 4px 0 0 0; }
+      .history-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+      .history-table th, .history-table td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--panel-border);
+      }
+      .history-table th {
+        color: var(--muted);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+      }
+      .config-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+      }
+      .config-field { display: flex; flex-direction: column; gap: 6px; }
+      .config-field span { color: var(--muted); font-size: 0.8rem; }
+      .config-field input {
+        background: var(--bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 8px 10px;
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+      .config-field input:focus { outline: none; border-color: var(--accent); }
+      .config-hint { margin-top: 16px; color: var(--muted); font-size: 0.85rem; }
+      .secondary-button {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .secondary-button:disabled {
+        color: var(--muted);
+        border-color: var(--panel-border);
+        cursor: not-allowed;
+      }
+      .footer {
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-top: 24px;
+      }
+      /* Bloque de gráficos (Tarea 6.3): grid responsivo con canvases de
+         altura fija para que Chart.js pueda dimensionar el area de dibujo
+         de forma predecible aun sin bundler ni layout engine externo. */
+      .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 900px) {
+        .charts-grid { grid-template-columns: 1fr 1fr; }
+      }
+      .chart-wrapper {
+        background: var(--bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 12px;
+        height: 320px;
+        position: relative;
+      }
+      .chart-wrapper canvas { width: 100% !important; height: 100% !important; }
+    </style>
+    <!--
+      Import map: el navegador resuelve `react` y `react-dom/client` desde el
+      CDN esm.sh sin requerir un bundler. Esta configuración es coherente con
+      la arquitectura del proyecto: mínimo tooling adicional para el frontend.
+      El compilador TypeScript (`tsc --project tsconfig.web.json`) sólo emite
+      el código de la aplicación; las dependencias se resuelven en runtime.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.3.1",
+          "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+          "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+          "chart.js/auto": "https://esm.sh/chart.js@4.4.6/auto"
+        }
+      }
+    </script>
   </head>
   <body>
-    <div class="container">
-      <h1>Jupiter Bot Monitor</h1>
-      <div class="subtitle">Monitoreo de precios SOL/USDC y SOL/USDT</div>
-
-      <div class="cards">
-        <div class="card">
-          <div class="label">SOL / USDC</div>
-          <div id="sol-usdc-price" class="value small">--</div>
-          <div class="status">Live</div>
-        </div>
-
-        <div class="card">
-          <div class="label">SOL / USDT</div>
-          <div id="sol-usdt-price" class="value small">--</div>
-          <div class="status">Live</div>
-        </div>
-
-        <div class="card">
-          <div class="label">Última actualización</div>
-          <div id="last-updated" class="value small">--</div>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Par</th>
-              <th>Precio</th>
-              <th>Timestamp</th>
-              <th>Fuente</th>
-            </tr>
-          </thead>
-          <tbody id="price-table-body">
-            <tr>
-              <td colspan="4">Cargando precios...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <script>
-      async function loadPrices() {
-        const res = await fetch('/api/prices');
-        const data = await res.json();
-
-        const solUsdc = data['SOL/USDC'];
-        const solUsdt = data['SOL/USDT'];
-
-        if (solUsdc) {
-          document.getElementById('sol-usdc-price').textContent = `${solUsdc.price.toFixed(2)} USD`;
-        }
-
-        if (solUsdt) {
-          document.getElementById('sol-usdt-price').textContent = `${solUsdt.price.toFixed(2)} USD`;
-        }
-
-        const updated = solUsdc?.timestamp || solUsdt?.timestamp || Date.now();
-        document.getElementById('last-updated').textContent = new Date(
-          updated,
-        ).toLocaleTimeString();
-
-        const rows = [
-          solUsdc
-            ? {
-                pair: solUsdc.pair,
-                price: solUsdc.price,
-                timestamp: solUsdc.timestamp,
-                dex: solUsdc.dex,
-              }
-            : null,
-          solUsdt
-            ? {
-                pair: solUsdt.pair,
-                price: solUsdt.price,
-                timestamp: solUsdt.timestamp,
-                dex: solUsdt.dex,
-              }
-            : null,
-        ].filter(Boolean);
-
-        const tbody = document.getElementById('price-table-body');
-        tbody.innerHTML = rows.length
-          ? rows
-              .map(
-                (row) => `
-              <tr>
-                <td>${row.pair}</td>
-                <td>${Number(row.price).toFixed(2)}</td>
-                <td>${new Date(row.timestamp).toLocaleTimeString()}</td>
-                <td>${row.dex}</td>
-              </tr>
-            `,
-              )
-              .join('')
-          : '<tr><td colspan="4">Sin datos disponibles</td></tr>';
-      }
-
-      loadPrices();
-      setInterval(loadPrices, 1200);
-    </script>
+    <div id="root"></div>
+    <!--
+      El archivo `assets/app.js` es el resultado de compilar `src/web/app.tsx`
+      con `npm run build:web`. Se sirve como archivo estático desde el
+      servidor Express de la Tarea 6.1 cuando `API_STATIC_DIR=public`.
+    -->
+    <script type="module" src="./assets/app.js"></script>
   </body>
 </html>

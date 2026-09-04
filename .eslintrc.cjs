@@ -12,7 +12,7 @@ module.exports = {
   },
   plugins: ['@typescript-eslint'],
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
-  ignorePatterns: ['dist/', 'node_modules/', 'target/'],
+  ignorePatterns: ['dist/', 'node_modules/', 'target/', 'src/web/', 'public/assets/'],
   rules: {
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/explicit-module-boundary-types': 'off',

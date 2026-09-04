@@ -1,6 +1,7 @@
 import bs58 from 'bs58';
 import { Keypair, VersionedTransaction, type Commitment } from '@solana/web3.js';
 
+import { createSilentLogger, serializeError, type Logger } from '../../utils/logger';
 import type { SignedBundle } from './bundleBuilder';
 
 /** Máximo de transacciones por bundle admitidas por el block-engine de Jito. */
@@ -51,6 +52,8 @@ export interface JitoExecutorOptions {
   connection: SignatureStatusProvider;
   confirmationBlockWindow?: number;
   pollIntervalMs?: number;
+  /** Logger opcional para trazabilidad del bundle. */
+  logger?: Logger;
 }
 
 /** Estado final devuelto tras enviar un bundle al relay. */
@@ -72,6 +75,7 @@ export class JitoExecutor {
   private readonly connection: SignatureStatusProvider;
   private readonly confirmationBlockWindow: number;
   private readonly pollIntervalMs: number;
+  private readonly logger: Logger;
 
   /** Configura el ejecutor con el cliente Jito y el proveedor RPC de confirmación. */
   constructor(options: JitoExecutorOptions) {
@@ -80,6 +84,7 @@ export class JitoExecutor {
     this.confirmationBlockWindow =
       options.confirmationBlockWindow ?? DEFAULT_CONFIRMATION_BLOCK_WINDOW;
     this.pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+    this.logger = options.logger ?? createSilentLogger();
 
     if (this.confirmationBlockWindow <= 0) {
       throw new Error('confirmationBlockWindow debe ser mayor que cero');
@@ -107,15 +112,50 @@ export class JitoExecutor {
 
     try {
       const bundleId = await this.relayClient.sendBundle(bundle.transactions);
-      return await this.waitForConfirmation({
+      this.logger.debug(
+        {
+          bundleId,
+          signatures,
+          lastValidBlockHeight: bundle.lastValidBlockHeight,
+        },
+        'jito:bundle-sent',
+      );
+      const result = await this.waitForConfirmation({
         bundleId,
         signatures,
         lastValidBlockHeight: bundle.lastValidBlockHeight,
         getBundleResult: () => bundleResult,
         getStreamError: () => streamError,
       });
+      this.logResult(result);
+      return result;
+    } catch (error) {
+      this.logger.warn(
+        { err: serializeError(error) },
+        'jito:submit-error',
+      );
+      throw error;
     } finally {
       safeCancel(cancelListener);
+    }
+  }
+
+  /**
+   * Registra el resultado final del bundle en el nivel de log adecuado
+   * (info para éxito, warn para rechazo o timeout).
+   */
+  private logResult(result: BundleSubmissionResult): void {
+    const payload = {
+      bundleId: result.bundleId,
+      status: result.status,
+      slot: result.slot,
+      validatorIdentity: result.validatorIdentity,
+      rejectionReason: result.rejectionReason,
+    };
+    if (result.status === 'confirmed' || result.status === 'accepted') {
+      this.logger.info(payload, 'jito:bundle-result');
+    } else {
+      this.logger.warn(payload, 'jito:bundle-result');
     }
   }
 
