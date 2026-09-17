@@ -2,14 +2,14 @@
 seeds = false
 
 [programs.localnet]
-mev_executor = "programs/mev_executor"
+mev_executor = "AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3"
+
+[programs.devnet]
+mev_executor = "AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3"
 
 [registry]
 url = "https://github.com/coral-xyz/anchor"
 
 [provider]
-cluster = "localnet"
-wallet = "~/.config/solana/id.json"
-
-[scripts]
-test = "anchor test"
+cluster = "devnet"
+wallet = "/home/ybotet/phantom-keypair.json"

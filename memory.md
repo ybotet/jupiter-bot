@@ -367,3 +367,84 @@ detalles necesarios para continuar el desarrollo sin perder contexto.
 - La lógica de Net Profit fue verificada con `Decimal.js`, incluyendo fees
   de Jupiter, tip de Jito, slippage, resultado negativo y precisión decimal.
 - No se detectaron secretos versionados ni vulnerabilidades bloqueantes.
+
+## Módulo 7: Integración y despliegue Devnet
+
+### Qué se hizo
+
+- Se desplegó `mev_executor` correctamente en Solana Devnet.
+- El Program ID desplegado es `AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3`.
+- La cuenta IDL reportada por Anchor es `PGiPtxYDGRs4sbcSKTA5W9AKCGXRDgubX5zkxKM8D3V`.
+- `solana program show` confirmó el owner `BPFLoaderUpgradeab1e11111111111111111111111`,
+  `ProgramData Address` `4jhpba9h3w2MM3PqHSHL3a6La7fCcEZYkEnkwLf2Pi76`,
+  slot de despliegue `495621085` y tamaño de programa `230032` bytes.
+- La firma de despliegue `4AFXVBsbF8AgF44NyHQGu2BKJK6ALcLvUFN6Ch8m3VNbfX3CoHZ5PnQkHVtXuTkRVjeFtDf7ywAL2Q63RJbVFpm1` quedó `Finalized`.
+- El entorno WSL dispone de Solana CLI `4.2.2`, Anchor CLI `0.32.1`, Cargo
+  `1.98.1` y Node.js `v18.19.1`. `npm` no está instalado como comando Linux,
+  pero Anchor puede invocar `node` directamente.
+- Se alineó el Program ID en `Anchor.toml`, `programs/mev_executor/src/lib.rs`,
+  `src/contracts/anchor/mevExecutor.ts` y `target/types/mev_executor.ts`.
+- El proveedor Anchor quedó configurado para Devnet y el keypair de despliegue
+  local está excluido de Git mediante `.gitignore`.
+
+### Por qué se hizo de esa forma
+
+- Mantener el mismo Program ID en Anchor, Rust, IDL y TypeScript evita firmar
+  instrucciones contra una dirección distinta de la desplegada.
+- Devnet permite validar el programa y preparar la integración end-to-end sin
+  exponer fondos de mainnet.
+- Las variables de endpoint y wallet se mantienen en `.env` o en la
+  configuración local de Solana; ninguna clave privada se añade al código.
+
+### Dónde están los cambios
+
+- `Anchor.toml`
+- `programs/mev_executor/src/lib.rs`
+- `src/contracts/anchor/mevExecutor.ts`
+- `target/types/mev_executor.ts`
+- `ARCHITECTURE.md`
+- `tasklist.md`
+- `.env.example`
+- `target/deploy/mev_executor-keypair.json` (local, ignorado por Git)
+
+### Qué hemos aprendido
+
+- La verificación definitiva del despliegue requiere `solana program show
+  AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3 --url devnet` y consultar la
+  cuenta en Solana Explorer.
+- `anchor test --provider.cluster devnet` necesita Anchor CLI, Solana CLI, una
+  wallet configurada, Node.js y SOL suficiente en Devnet.
+- Con Node.js disponible, Anchor compiló correctamente el programa y comenzó
+  la suite, pero el intento de redeploy falló por `websocket error`, expiración
+  de blockhash y error de conexión a `https://api.devnet.solana.com/`.
+- El fallo de `anchor test` es de transporte/RPC durante el redeploy; no se
+  observaron errores de compilación Rust ni errores funcionales de Anchor.
+- La interacción de tests Devnet queda pendiente de repetir con un RPC estable
+  o alternativo; el despliegue existente continúa verificado como `Finalized`.
+
+### Tarea 7.3: Fallbacks RPC y reintentos
+
+- Se añadió `tests/e2e/fallback.e2e.ts` con dobles inyectables: Helius falla,
+  Triton responde y el `RetryHandler` obtiene `timeout` en el primer intento
+  y `confirmed` en el segundo.
+- La prueba valida que el bundle se reconstruye sin perder su transacción,
+  que el `computeUnitPrice` sube de `1000` a `1500` y que el proveedor activo
+  permanece en Triton para el reintento.
+- El escenario es offline y no usa wallet, fondos ni RPC real; permite validar
+  el comportamiento determinista de la arquitectura sin riesgo operativo.
+- La compilación de `tsconfig.tests.json` y la prueba E2E pasan: `1 pass, 0 fail`.
+
+### Tarea 7.4: Logs y alertas E2E
+
+- Se añadió `tests/e2e/logging.e2e.ts` con logger y canal de alertas en memoria.
+- La prueba verifica eventos `transaction:started`, `transaction:succeeded` y
+  `transaction:failed`, todos con el mismo `transactionId`.
+- También comprueba alertas de éxito y fallo, timestamps, metadata saneada y
+  ausencia de secretos en las líneas JSON capturadas.
+- El escenario no usa Telegram, Slack, RPC ni claves; valida el flujo completo
+  de observabilidad de forma determinista y offline.
+- No se debe marcar el despliegue como mainnet: el Program ID documentado aquí
+  corresponde únicamente a Devnet.
+- Durante la configuración se detectó que `.env` contenía credenciales reales;
+  aunque el archivo no está versionado, cualquier clave privada o token que se
+  exponga debe revocarse y rotarse inmediatamente.

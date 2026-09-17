@@ -1,7 +1,9 @@
 import { PublicKey, type AccountMeta } from '@solana/web3.js';
 import type { Idl } from '@coral-xyz/anchor';
 
-export const MEV_EXECUTOR_PROGRAM_ID = new PublicKey('11111111111111111111111111111111');
+export const MEV_EXECUTOR_PROGRAM_ID = new PublicKey(
+  'AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3',
+);
 
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 

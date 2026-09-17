@@ -33,7 +33,7 @@ flowchart TB
     end
 
     subgraph "On-Chain Layer (Rust/Anchor)"
-        CONTRACT[Arbitrage Executor<br/>Program ID: xxx]
+        CONTRACT[Arbitrage Executor<br/>Program ID: AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3<br/>Cluster: Devnet]
         RAY[Raydium Pool]
         ORCA[Orca Pool]
         MET[Meteora Pool]

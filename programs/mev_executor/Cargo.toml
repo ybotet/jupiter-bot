@@ -11,6 +11,7 @@ crate-type = ["cdylib", "lib"]
 default = []
 no-entrypoint = []
 anchor-debug = ["anchor-lang/anchor-debug"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
 anchor-lang = "0.32.1"

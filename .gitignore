@@ -7,6 +7,8 @@ dist-tests/
 build/
 out/
 public/assets/
+target/
+target/deploy/*-keypair.json
 
 # Logs y temporales
 logs/

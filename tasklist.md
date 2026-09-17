@@ -113,12 +113,12 @@ Este plan desglosa la construcción del bot en **10 módulos secuenciales**, pri
 
 **Objetivo:** Validar el flujo completo desde la detección hasta la ejecución en un entorno controlado (devnet/testnet).
 
-| ID  | Tarea                                                                            | Archivos Involucrados          | Criterio de Aceptación                                        |
-| --- | -------------------------------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------- |
-| 7.1 | Desplegar el contrato Anchor en devnet y obtener el `programId`.                 | `contracts/anchor/Anchor.toml` | El programa está desplegado y se puede interactuar con él.    |
-| 7.2 | Ejecutar una prueba end-to-end simulando una oportunidad de arbitraje en devnet. | `tests/e2e/arbitrage.e2e.ts`   | La transacción se confirma y el beneficio es positivo.        |
-| 7.3 | Probar el sistema de reintentos y fallbacks con RPCs caídos (simulados).         | `tests/e2e/fallback.e2e.ts`    | El bot cambia de RPC y reintenta sin perder la oportunidad.   |
-| 7.4 | Validar que los logs y alertas se generan correctamente durante la ejecución.    | `tests/e2e/logging.e2e.ts`     | Se registran eventos de éxito/fallo con el contexto adecuado. |
+| ID     | Tarea                                                                            | Archivos Involucrados                             | Criterio de Aceptación                                                         |
+| ------ | -------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| ✅ 7.1 | Desplegar el contrato Anchor en devnet y obtener el `programId`.                 | `Anchor.toml`, `programs/mev_executor/src/lib.rs` | Programa desplegado en Devnet: `AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3`. |
+| 7.2    | Ejecutar una prueba end-to-end simulando una oportunidad de arbitraje en devnet. | `tests/e2e/arbitrage.e2e.ts`                      | La transacción se confirma y el beneficio es positivo.                         |
+| ✅ 7.3 | Probar el sistema de reintentos y fallbacks con RPCs caídos (simulados).         | `tests/e2e/fallback.e2e.ts`                       | El bot cambia de RPC y reintenta sin perder la oportunidad.                    |
+| ✅ 7.4 | Validar que los logs y alertas se generan correctamente durante la ejecución.    | `tests/e2e/logging.e2e.ts`                        | Se registran eventos de éxito/fallo con el contexto adecuado.                  |
 
 ---
 

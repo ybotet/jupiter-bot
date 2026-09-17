@@ -12,6 +12,7 @@
     "test": "echo \"No tests configured yet\" && exit 0",
     "test:unit": "tsc --project tsconfig.json && node --test \"dist/**/*.test.js\"",
     "test:integration": "tsc --project tsconfig.tests.json && node --test \"dist-tests/tests/integration/*.test.js\"",
+    "test:e2e": "tsc --project tsconfig.tests.json && node --test \"dist-tests/tests/e2e/*.e2e.js\"",
     "test:acceptance": "tsc --project tsconfig.tests.json && node --test \"dist-tests/tests/*.test.js\"",
     "serve:dashboard": "npm run build && npm run build:web && node dist/devDashboard.js"
   },
