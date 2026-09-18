@@ -93,3 +93,32 @@ Para consolidar lo aprendido y evitar que la IA "olvide" decisiones previas en l
     [3. Tarea Exacta] Genera un resumen de memoria técnica siguiendo el formato: Qué se hizo, Por qué se hizo de esa forma, Dónde están los cambios y qué hemos Aprendido (ej. errores de red en Solana detectados).
     [4. Restricciones] Sé breve y directo. Evita explicaciones genéricas.
     [5. Formato] Un bloque Markdown para añadir a nuestro registro de memoria persistente.
+
+    ---------------------------------------------------------------------------------------------------------------
+
+[1. ROL]
+Actúa como un Senior Technical Writer y Arquitecto de Producto con amplia experiencia en documentación técnica, experiencia de usuario (UX) y guías de explotación operativa de software.
+
+[2. CONTEXTO]
+Tenemos una plataforma/dashboard web destinada a [definir tipo de usuario: ej. operadores, analistas, administradores]. La pantalla principal muestra un panel con diversos indicadores clave (KPIs), gráficos en tiempo real y tablas de datos. Necesitamos un manual de explotación claro para que cualquier usuario entienda qué significa cada elemento de la pantalla, cómo interpretar la información obtenida y qué acciones tomar en función de los datos observados.
+
+[3. TAREA EXACTA]
+Redacta un "Manual de Explotación y Guía de Usuario" exhaustivo y didáctico para la vista [nombre de la vista/página, ej. Dashboard de Monitoreo MEV / Panel de Control de Ventas].
+El manual debe incluir:
+1. Resumen Ejecutivo y Propósito de la Página: Qué es, para qué sirve y qué decisiones permite tomar.
+2. Glosario de Conceptos Clave: Definición clara de los términos técnicos utilizados.
+3. Desglose Métrica por Métrica (Tarjetas/KPIs): Significado, fuente del dato y rangos normales vs. valores de alerta.
+4. Explicación Detallada de Gráficos: Eje X, Eje Y, qué representa cada línea/barra y cómo interpretar las tendencias o anomalías.
+5. Guía de Tablas de Datos: Explicación de cada columna, opciones de filtrado, ordenación y significado de los estados/colores.
+6. Flujo de Trabajo Operativo (Procedimientos): Qué acciones o decisiones debe tomar el usuario según los resultados observados (ej. si la métrica X supera el umbral Y, realizar la acción Z).
+Puedes obtener información además de @file:memory.md, @file:spec.md  y @file:tasklist.md 
+
+[4. RESTRICCIONES Y REGLAS]
+- Idioma: Español claro, profesional y libre de jerga técnica innecesaria (o explicándola cuando sea imprescindible).
+- Usa analogías o ejemplos prácticos cuando expliques gráficos complejos.
+- Incluye cajas de texto/alertas (usando formato blockquote de Markdown `&gt;`) para resaltar advertencias críticas o consejos de uso.
+- Si una métrica requiere un cálculo específico (ej. beneficio neto = ingresos - fees - slippage), indica la fórmula matemática de forma explícita.
+- Asume que el lector no participó en el desarrollo del software.
+
+[5. FORMATO DE SALIDA]
+Devuélveme el contenido estructurado en Markdown limpio y modular, organizado con encabezados jerárquicos (H1, H2, H3) e hipervínculos/índice interno, listo para guardarse como `MANUAL_EXPLOTACION.md` en el repositorio del proyecto.

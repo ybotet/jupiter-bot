@@ -448,3 +448,43 @@ detalles necesarios para continuar el desarrollo sin perder contexto.
 - Durante la configuración se detectó que `.env` contenía credenciales reales;
   aunque el archivo no está versionado, cualquier clave privada o token que se
   exponga debe revocarse y rotarse inmediatamente.
+
+## Resumen ejecutivo del Módulo 7
+
+### Qué se hizo
+
+- Se desplegó y verificó `mev_executor` en Solana Devnet con Program ID
+  `AtLhxzFGmy6HnzdRrpKHFReVvKWW2CqZWxGE2BEC23x3`.
+- Se validaron mediante E2E offline el fallback Helius -> Triton, los reintentos
+  con aumento de `computeUnitPrice` y la generación de logs y alertas saneados.
+- La prueba de arbitraje rentable contra Devnet quedó preparada, pero no pudo
+  ejecutarse de forma concluyente.
+
+### Por qué se hizo de esa forma
+
+- Devnet permite verificar el despliegue sin arriesgar fondos de mainnet.
+- Los escenarios offline aíslan la lógica de fallback, retry y observabilidad
+  de la disponibilidad de RPCs, wallets y servicios externos.
+- Se mantuvo el mismo Program ID en Anchor, Rust, IDL y TypeScript para evitar
+  enviar instrucciones a una dirección distinta.
+
+### Dónde están los cambios
+
+- `Anchor.toml`
+- `programs/mev_executor/src/lib.rs`
+- `src/contracts/anchor/mevExecutor.ts`
+- `tests/e2e/arbitrage.e2e.ts`
+- `tests/e2e/fallback.e2e.ts`
+- `tests/e2e/logging.e2e.ts`
+- `ARCHITECTURE.md`, `tasklist.md` y `.env.example`
+
+### Qué hemos aprendido
+
+- La prueba `anchor test` puede fallar por `websocket error`, expiración de
+  blockhash o indisponibilidad del RPC aunque el programa ya esté desplegado y
+  compilado correctamente.
+- `logsSubscribe` y los RPC públicos de Devnet no deben tratarse como una
+  garantía de disponibilidad ni como validación completa del flujo E2E.
+- Las pruebas Devnet requieren repetirlas con un RPC estable o alternativo;
+  las pruebas offline ya validan el comportamiento determinista sin exponer
+  fondos ni secretos.
